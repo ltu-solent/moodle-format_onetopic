@@ -381,7 +381,9 @@ class format_onetopic_renderer extends format_section_renderer_base {
                         'increase' => true,
                         'sesskey' => sesskey()));
                 $icon = $this->output->pix_icon('t/switch_plus', $straddsection);
-                $tabs[] = new tabobject("tab_topic_add", $url, $icon, s($straddsection));
+// SSU_AMEND START - REMOVE PLUS/MINUS BUTTONS
+                //$tabs[] = new tabobject("tab_topic_add", $url, $icon, s($straddsection));
+// SSU_AMEND END
 
                 if ($course->numsections > 0) {
                     // Reduce number of sections.
@@ -391,7 +393,9 @@ class format_onetopic_renderer extends format_section_renderer_base {
                             'increase' => false,
                             'sesskey' => sesskey()));
                     $icon = $this->output->pix_icon('t/switch_minus', $strremovesection);
-                    $tabs[] = new tabobject("tab_topic_remove", $url, $icon, s($strremovesection));
+// SSU_AMEND START - REMOVE PLUS/MINUS BUTTONS
+                    //$tabs[] = new tabobject("tab_topic_remove", $url, $icon, s($strremovesection));
+// SSU_AMEND END
                 }
             }
 
@@ -446,8 +450,10 @@ class format_onetopic_renderer extends format_section_renderer_base {
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $context)) {
 
             echo '<br class="utilities-separator" />';
-            print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection', get_string('utilities', 'format_onetopic'), '', true);
-            
+// SSU_AMEND START - EXPAND TABS EDITING PANEL
+            //print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection', get_string('utilities', 'format_onetopic'), '', true);
+            print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection', get_string('utilities', 'format_onetopic'), '', false);
+// SSU_AMEND END            
 
             //Move controls
             if ($can_move && !empty($move_list_html)) {
