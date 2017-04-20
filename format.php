@@ -64,10 +64,20 @@ if (isset($section) && $section >= 0 && $course->numsections >= $section) {
 } 
 else {
     if (isset($USER->display[$course->id]) && $course->numsections >= $USER->display[$course->id]) {
-        $displaysection = $USER->display[$course->id];
+// SSU_AMEND START - SET TAB AS CURRENT
+        //$displaysection = $USER->display[$course->id];
+		$displaysection = $course->marker;
+// SSU_AMEND END
     } else {
         $USER->display[$course->id] = 0;
         $displaysection = 0;
+// SSU_AMEND START - SET TAB AS CURRENT		
+		if($course->marker){
+			$displaysection = $course->marker;
+		}else{
+			$displaysection = 0;
+		}
+// SSU_AMEND END
     }
 }
 
