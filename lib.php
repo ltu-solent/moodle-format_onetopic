@@ -93,8 +93,17 @@ class format_onetopic extends format_base {
     public function get_section_name($section) {
         $section = $this->get_section($section);
         if ((string)$section->name !== '') {
-            return format_string($section->name, true,
+// SSU_AMEND START - RESTRICT SECTION (TAB) NAME LENGTH
+            // return format_string($section->name, true,
+                    // array('context' => context_course::instance($this->courseid)));
+			$sec = format_string($section->name, true,
                     array('context' => context_course::instance($this->courseid)));
+
+			if($section->course > 2){
+				$sec = substr($sec,0,30);	
+			}
+// SSU_AMEND END			
+			return $sec;
         } else {
             return $this->get_default_section_name($section);
         }

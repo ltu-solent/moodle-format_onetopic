@@ -241,7 +241,10 @@ class format_onetopic_renderer extends format_section_renderer_base {
                     $formatoptions = course_get_format($course)->get_format_options($thissection);
 
                     $sectionname = get_section_name($course, $thissection);
-
+// SSU_AMEND START - CAPITALISE FIRST LETTER OF TABS
+					$sectionname = strtolower($sectionname);
+					$sectionname = ucfirst($sectionname);
+// SSU_AMEND END
                     if ($displaysection != $section) {
                         $sectionmenu[$section] = $sectionname;
                     }
@@ -344,8 +347,16 @@ class format_onetopic_renderer extends format_section_renderer_base {
                             }
 
                             if ($displaysection != $section) {
-                                $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+// SSU_AMEND START - PREVENT FIRST 5 SECTIONS/TABS BEING MOVED
+                                //$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+                                                //array('class' => $liclass));
+								if($section > 4 && $displaysection > 4){
+									$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
                                                 array('class' => $liclass));
+								}else{
+									$movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
+								}
+//// SSU_AMEND END
                             } else {
                                 $movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
                             }
