@@ -206,7 +206,10 @@ class format_onetopic_renderer extends format_section_renderer_base {
         $inactivetabs = array();
 
         $defaulttopic = -1;
-
+// SSU_AMEND START
+		$settings = get_config('theme_solent2017');
+		$units = explode(",", $settings->units);
+// SSU_AMEND END
         while ($section <= $course->numsections) {
 
             if ($course->realcoursedisplay == COURSE_DISPLAY_MULTIPAGE && $section == 0) {
@@ -242,8 +245,8 @@ class format_onetopic_renderer extends format_section_renderer_base {
 
                     $sectionname = get_section_name($course, $thissection);
 // SSU_AMEND START - CAPITALISE FIRST LETTER OF TABS
-					$sectionname = strtolower($sectionname);
-					$sectionname = ucfirst($sectionname);
+					//$sectionname = strtolower($sectionname);
+					//$sectionname = ucfirst($sectionname);
 // SSU_AMEND END
                     if ($displaysection != $section) {
                         $sectionmenu[$section] = $sectionname;
@@ -350,11 +353,17 @@ class format_onetopic_renderer extends format_section_renderer_base {
 // SSU_AMEND START - PREVENT FIRST 5 SECTIONS/TABS BEING MOVED
                                 //$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
                                                 //array('class' => $liclass));
-								if($section > 4 && $displaysection > 4){
+//echo $course->category;
+								if(!in_array($course->category, $units)){
 									$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
                                                 array('class' => $liclass));
 								}else{
-									$movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
+									if(($section > 4 && $displaysection > 4) || is_siteadmin()){
+										$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+													array('class' => $liclass));
+									}else{
+										$movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
+									}
 								}
 //// SSU_AMEND END
                             } else {
