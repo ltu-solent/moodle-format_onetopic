@@ -206,7 +206,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
         $inactivetabs = array();
 
         $defaulttopic = -1;
-// SSU_AMEND START
+// SSU_AMEND START - GET UNIT CATEGORIES FROM THEME SETTINGS
 		$settings = get_config('theme_solent2017');
 		$units = explode(",", $settings->units);
 // SSU_AMEND END
@@ -454,7 +454,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $context)) {
 
             echo '<br class="utilities-separator" />';
-// SSU_AMEND START
+// SSU_AMEND START - EXPAND OPTIONS PANEL
             // print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
                 // get_string('utilities', 'format_onetopic'), '', true);
 			print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
@@ -633,9 +633,22 @@ class format_onetopic_renderer extends format_section_renderer_base {
                                                'attr' => array('class' => 'editing_highlight', 'title' => $markthistopic));
             }
         }
+// SSU_AMEND START - Prevent first 5 tabs being edited
+		$parentcontrols = parent::section_edit_control_items($course, $section, $onsectionpage);
+		// global $CFG;
+		// require_once($CFG->libdir.'/coursecatlib.php');
+		// $category = coursecat::get($course->category, IGNORE_MISSING);
 
-        $parentcontrols = parent::section_edit_control_items($course, $section, $onsectionpage);
-
+		// if($category->name == 'Unit Pages'){
+			// if(is_siteadmin() || $section->section > 4){
+				// $parentcontrols = parent::section_edit_control_items($course, $section, $onsectionpage);
+			// }else{
+				// $parentcontrols = array();
+			// }
+		// }else{
+			// $parentcontrols = parent::section_edit_control_items($course, $section, $onsectionpage);
+		// }
+// SSU_AMEND END
         // If the edit key exists, we are going to insert our controls after it.
         if (array_key_exists("edit", $parentcontrols)) {
             $merged = array();
