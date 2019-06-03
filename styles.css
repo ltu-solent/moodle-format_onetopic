@@ -115,51 +115,67 @@
 
 /* SU_AMEND START */
 /* Set colours for dropdown selectors */
-#id_bgcolor option {
-  color: white;
+#id_bgcolor option[value=""] {
+  background: #466273;
+  color: #fff;
+}
+
+#id_bgcolor option[value="#FFF"] {
+  color: #000;
 }
 
 #id_bgcolor > option[value="#763978"] {
     background: #763978;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#CFCC38"] {
     background: #CFCC38;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#71A3A7"] {
     background: #71A3A7;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#008FBD"] {
     background: #008FBD;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#466273"] {
     background: #466273;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#00AAAF"] {
     background: #00AAAF;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#9BAE4D"] {
     background: #9BAE4D;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#23A17C"] {
     background: #23A17C;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#E16766"] {
     background: #E16766;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#E20613"] {
     background: #E20613;
+    color: #fff;
 }
 
 #id_bgcolor > option[value="#2C2D2E"] {
     background: #2C2D2E;
+    color: #fff;
 }
 /* SU_AMEND END

@@ -264,15 +264,20 @@ class format_onetopic_renderer extends format_section_renderer_base {
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
+
 // SSU_AMEND START Set tab font colour based on background colour
-                  // if (!empty($formatoptions['fontcolor'])) {
-                  //     $customstyles .= 'color: ' . $formatoptions['fontcolor'] . ';';
-                  // }
-                  if ($formatoptions['bgcolor'] == '#FFFFFF') {  //if the background colour is white,
-                    $customstyles .= 'color: ' . 'black' . ';'; //make the font colour black
-                  } elseif (!empty($formatoptions['fontcolor'])) { //otherwise, if the font colour is set,
-                    $customstyles .= 'color: ' . '#FFFFFF' . ';'; //change it back to the default colour
-                  }
+                    // if (!empty($formatoptions['fontcolor'])) {
+                    //     $customstyles .= 'color: ' . $formatoptions['fontcolor'] . ';';
+                    // }
+                    if (!empty($formatoptions['bgcolor'])) {
+                      if ($formatoptions['bgcolor'] == '#FFFFFF') {  //if the background colour is white,
+                        $customstyles .= 'color: ' . 'black' . ';'; //make the font colour black
+                      }else{
+                        $customstyles .= 'color: ' . '#FFFFFF' . ';'; //change it back to the default colour
+                      }
+                    }else{
+                      $customstyles .= ''; //remove color
+                    }
 // SSU_AMEND END
                     if (!empty($formatoptions['bgcolor'])) {
                         $customstyles .= 'background-color: ' . $formatoptions['bgcolor'] . ';';

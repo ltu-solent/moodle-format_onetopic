@@ -602,7 +602,7 @@ class format_onetopic extends format_base {
                 // )
                 //SSU_AMEND START Removed font colour and CSS addition form fields, changed background colour setting to fixed options list
                 'bgcolor' => array(
-                    'default' => '#466273',
+                    'default' => '',
                     'type' => PARAM_RAW,
                     'label' => get_string('bgcolor', 'format_onetopic'),
                     'help' => 'bgcolor',
@@ -610,9 +610,7 @@ class format_onetopic extends format_base {
                     'element_type' => 'select',
                     'element_attributes' => array(
                         array(
-                            '#FFFFFF' => 'White',
-                            '#2C2D2E' => 'Black',
-                            '#466273' => 'Dark Blue',
+                            ''=>'Default',
                             '#008FBD' => 'Blue',
                             '#00AAAF' => 'Light Blue',
                             '#71A3A7' => 'Pale Blue',
@@ -621,7 +619,8 @@ class format_onetopic extends format_base {
                             '#23A17C' => 'Green',
                             '#763978' => 'Purple',
                             '#E16766' => 'Pink',
-                            '#E20613' => 'Red'
+                            '#E20613' => 'Red',
+                            '#2C2D2E' => 'Black'
                         )
                     )
                 )
