@@ -578,27 +578,54 @@ class format_onetopic extends format_base {
                     'help' => 'firsttabtext',
                     'help_component' => 'format_onetopic',
                 ),
-                'fontcolor' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW,
-                    'label' => get_string('fontcolor', 'format_onetopic'),
-                    'help' => 'fontcolor',
-                    'help_component' => 'format_onetopic',
-                ),
+//SU_AMEND START -
+                // 'fontcolor' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('fontcolor', 'format_onetopic'),
+                //     'help' => 'fontcolor',
+                //     'help_component' => 'format_onetopic',
+                // ),
+                // 'bgcolor' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('bgcolor', 'format_onetopic'),
+                //     'help' => 'bgcolor',
+                //     'help_component' => 'format_onetopic',
+                // ),
+                // 'cssstyles' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('cssstyles', 'format_onetopic'),
+                //     'help' => 'cssstyles',
+                //     'help_component' => 'format_onetopic',
+                // )
+                //SSU_AMEND START Removed font colour and CSS addition form fields, changed background colour setting to fixed options list
                 'bgcolor' => array(
-                    'default' => '',
+                    'default' => '#466273',
                     'type' => PARAM_RAW,
                     'label' => get_string('bgcolor', 'format_onetopic'),
                     'help' => 'bgcolor',
                     'help_component' => 'format_onetopic',
-                ),
-                'cssstyles' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW,
-                    'label' => get_string('cssstyles', 'format_onetopic'),
-                    'help' => 'cssstyles',
-                    'help_component' => 'format_onetopic',
+                    'element_type' => 'select',
+                    'element_attributes' => array(
+                        array(
+                            '#FFFFFF' => 'White',
+                            '#2C2D2E' => 'Black',
+                            '#466273' => 'Dark Blue',
+                            '#008FBD' => 'Blue',
+                            '#00AAAF' => 'Light Blue',
+                            '#71A3A7' => 'Pale Blue',
+                            '#CFCC38' => 'Yellow',
+                            '#9BAE4D' => 'Dark Yellow',
+                            '#23A17C' => 'Green',
+                            '#763978' => 'Purple',
+                            '#E16766' => 'Pink',
+                            '#E20613' => 'Red'
+                        )
+                    )
                 )
+//SSU_AMEND END
             );
 
             $sectionformatoptions = $sectionformatoptionsedit;
