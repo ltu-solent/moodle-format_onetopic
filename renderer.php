@@ -369,8 +369,23 @@ class format_onetopic_renderer extends format_section_renderer_base {
                         }
 
                         if ($displaysection != $section) {
-                            $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
-                                            array('class' => $liclass));
+// SU_AMEND START - Course: Prevent anyone except admins moving default sections
+                            //$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+                                            //array('class' => $liclass));
+                            $category = core_course_category::get($course->category, IGNORE_MISSING);
+                            $catname = strtolower('x'.$category->name);
+                            if(strpos($catname, 'unit pages') !== false){
+                              if($section > 4 && $displaysection > 4 || is_siteadmin()){
+                                $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+                                        array('class' => $liclass));
+                              }else{
+                                $movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
+                              }
+                            }else{
+                              $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+                                                            array('class' => $liclass));
+                            }
+// SU_AMEND END
                         } else {
                             $movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
                         }
