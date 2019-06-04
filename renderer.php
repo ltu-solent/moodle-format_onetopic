@@ -265,7 +265,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
                 $level = 0;
                 if (is_array($formatoptions)) {
 
-// SSU_AMEND START Set tab font colour based on background colour
+// SU_AMEND START - Course: Pre-selected tab colours
                     // if (!empty($formatoptions['fontcolor'])) {
                     //     $customstyles .= 'color: ' . $formatoptions['fontcolor'] . ';';
                     // }
@@ -278,7 +278,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
                     }else{
                       $customstyles .= ''; //remove color
                     }
-// SSU_AMEND END
+// SU_AMEND END
                     if (!empty($formatoptions['bgcolor'])) {
                         $customstyles .= 'background-color: ' . $formatoptions['bgcolor'] . ';';
                     }

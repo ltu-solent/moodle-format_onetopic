@@ -578,7 +578,7 @@ class format_onetopic extends format_base {
                     'help' => 'firsttabtext',
                     'help_component' => 'format_onetopic',
                 ),
-//SU_AMEND START -
+// SU_AMEND START - Course: Pre-selected tab colours
                 // 'fontcolor' => array(
                 //     'default' => '',
                 //     'type' => PARAM_RAW,
@@ -600,7 +600,7 @@ class format_onetopic extends format_base {
                 //     'help' => 'cssstyles',
                 //     'help_component' => 'format_onetopic',
                 // )
-                //SSU_AMEND START Removed font colour and CSS addition form fields, changed background colour setting to fixed options list
+
                 'bgcolor' => array(
                     'default' => '',
                     'type' => PARAM_RAW,
@@ -624,7 +624,7 @@ class format_onetopic extends format_base {
                         )
                     )
                 )
-//SSU_AMEND END
+// SU_AMEND END
             );
 
             $sectionformatoptions = $sectionformatoptionsedit;

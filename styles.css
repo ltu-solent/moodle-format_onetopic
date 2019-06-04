@@ -113,7 +113,7 @@
     margin: 0 3px 0 5px;
 }
 
-/* SU_AMEND START */
+/* SU_AMEND START - Course: Pre-selected tab colours */
 /* Set colours for dropdown selectors */
 #id_bgcolor option[value=""] {
   background: #466273;
