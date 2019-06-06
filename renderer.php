@@ -464,7 +464,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $context)) {
 
             echo '<br class="utilities-separator" />';
-//SU_AMEND START - Course: Expand section editing panel
+// SU_AMEND START - Course: Expand section editing panel
             // print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
             //     get_string('utilities', 'format_onetopic'), '', true);
             print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
