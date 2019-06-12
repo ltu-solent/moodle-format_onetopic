@@ -619,8 +619,7 @@ class format_onetopic extends format_base {
                             '#23A17C' => 'Green',
                             '#763978' => 'Purple',
                             '#E16766' => 'Pink',
-                            '#E20613' => 'Red',
-                            '#2C2D2E' => 'Black'
+                            '#E20613' => 'Red'
                         )
                     )
                 )

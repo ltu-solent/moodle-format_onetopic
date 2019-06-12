@@ -274,6 +274,7 @@ class format_onetopic_renderer extends format_section_renderer_base {
                         $customstyles .= 'color: ' . 'black' . ';'; //make the font colour black
                       }else{
                         $customstyles .= 'color: ' . '#FFFFFF' . ';'; //change it back to the default colour
+                        $customstyles .= 'border: 1px solid ' . $formatoptions['bgcolor'] .';';
                       }
                     }else{
                       $customstyles .= ''; //remove color
