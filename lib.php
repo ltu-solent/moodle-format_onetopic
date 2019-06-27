@@ -540,18 +540,18 @@ class format_onetopic extends format_base {
                     'default' => 0,
                     'type' => PARAM_TEXT
                 ),
-                'fontcolor' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW
-                ),
+                // 'fontcolor' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW
+                // ),
                 'bgcolor' => array(
                     'default' => '',
                     'type' => PARAM_RAW
                 ),
-                'cssstyles' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW
-                )
+                // 'cssstyles' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW
+                // )
             );
         }
 
@@ -599,7 +599,7 @@ class format_onetopic extends format_base {
                 //     'label' => get_string('cssstyles', 'format_onetopic'),
                 //     'help' => 'cssstyles',
                 //     'help_component' => 'format_onetopic',
-                // )
+                // ),
 
                 'bgcolor' => array(
                     'default' => '',
@@ -611,21 +611,19 @@ class format_onetopic extends format_base {
                     'element_attributes' => array(
                         array(
                             ''=>'Default',
-                            '#008FBD' => 'Blue',
-                            '#00AAAF' => 'Light Blue',
-                            '#71A3A7' => 'Pale Blue',
-                            '#CFCC38' => 'Yellow',
-                            '#9BAE4D' => 'Dark Yellow',
-                            '#23A17C' => 'Green',
-                            '#763978' => 'Purple',
-                            '#E16766' => 'Pink',
-                            '#E20613' => 'Red'
+                            '#007EA8' => 'Cerulean',
+                            '#008085' => 'Teal',
+                            '#4F7A7D' => 'Cadet blue',
+                            '#7B7A1E' => 'Yellow green',
+                            '#6D7C36' => 'Rain forest',
+                            '#1D8666' => 'Elf green',
+                            '#763978' => 'Eminence',
+                            '#D83B3B' => 'Cinnabar'
                         )
                     )
                 )
 // SU_AMEND END
             );
-
             $sectionformatoptions = $sectionformatoptionsedit;
         }
         return $sectionformatoptions;
