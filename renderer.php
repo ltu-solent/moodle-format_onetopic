@@ -265,17 +265,10 @@ class format_onetopic_renderer extends format_section_renderer_base {
                 $level = 0;
                 if (is_array($formatoptions)) {
 
-// SU_AMEND START - Course: Pre-selected tab colours
-                    // if (!empty($formatoptions['fontcolor'])) {
-                    //     $customstyles .= 'color: ' . $formatoptions['fontcolor'] . ';';
-                    // }
-                    if (!empty($formatoptions['bgcolor'])) {
-                        $customstyles .= 'color: ' . '#FFFFFF' . ';'; //change it back to the default colour
-                        $customstyles .= 'border: 1px solid ' . $formatoptions['bgcolor'] .';';
-                    }else{
-                      $customstyles .= ''; //remove color
+                    if (!empty($formatoptions['fontcolor'])) {
+                        $customstyles .= 'color: ' . $formatoptions['fontcolor'] . ';';
                     }
-// SU_AMEND END
+
                     if (!empty($formatoptions['bgcolor'])) {
                         $customstyles .= 'background-color: ' . $formatoptions['bgcolor'] . ';';
                     }
@@ -366,23 +359,8 @@ class format_onetopic_renderer extends format_section_renderer_base {
                         }
 
                         if ($displaysection != $section) {
-// SU_AMEND START - Course: Prevent anyone except admins moving default sections
-                            //$movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
-                                            //array('class' => $liclass));
-                            $category = core_course_category::get($course->category, IGNORE_MISSING);
-                            $catname = strtolower('x'.$category->name);
-                            if(strpos($catname, 'unit pages') !== false){
-                              if($section > 4 && $displaysection > 4 || is_siteadmin()){
-                                $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
-                                        array('class' => $liclass));
-                              }else{
-                                $movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
-                              }
-                            }else{
-                              $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
-                                                            array('class' => $liclass));
-                            }
-// SU_AMEND END
+                            $movelisthtml .= html_writer::tag('li', html_writer::link($url, $sectionname),
+                                            array('class' => $liclass));
                         } else {
                             $movelisthtml .= html_writer::tag('li', $sectionname, array('class' => $liclass));
                         }
@@ -461,12 +439,9 @@ class format_onetopic_renderer extends format_section_renderer_base {
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $context)) {
 
             echo '<br class="utilities-separator" />';
-// SU_AMEND START - Course: Expand section editing panel
-            // print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
-            //     get_string('utilities', 'format_onetopic'), '', true);
             print_collapsible_region_start('move-list-box clearfix collapsible mform', 'course_format_onetopic_config_movesection',
-                get_string('utilities', 'format_onetopic'), '', false);
-//SU_AMEND END
+                get_string('utilities', 'format_onetopic'), '', true);
+
             // Move controls.
             if ($canmove && !empty($movelisthtml)) {
                 echo html_writer::start_div("form-item clearfix");
