@@ -603,27 +603,51 @@ class format_onetopic extends format_base {
                     'help' => 'firsttabtext',
                     'help_component' => 'format_onetopic',
                 ),
-                'fontcolor' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW,
-                    'label' => get_string('fontcolor', 'format_onetopic'),
-                    'help' => 'fontcolor',
-                    'help_component' => 'format_onetopic',
-                ),
-                'bgcolor' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW,
-                    'label' => get_string('bgcolor', 'format_onetopic'),
-                    'help' => 'bgcolor',
-                    'help_component' => 'format_onetopic',
-                ),
-                'cssstyles' => array(
-                    'default' => '',
-                    'type' => PARAM_RAW,
-                    'label' => get_string('cssstyles', 'format_onetopic'),
-                    'help' => 'cssstyles',
-                    'help_component' => 'format_onetopic',
-                )
+// SU_AMEND START - Course: Disable format options
+                // 'fontcolor' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('fontcolor', 'format_onetopic'),
+                //     'help' => 'fontcolor',
+                //     'help_component' => 'format_onetopic',
+                // ),
+                // 'bgcolor' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('bgcolor', 'format_onetopic'),
+                //     'help' => 'bgcolor',
+                //     'help_component' => 'format_onetopic',
+                // ),
+                // 'cssstyles' => array(
+                //     'default' => '',
+                //     'type' => PARAM_RAW,
+                //     'label' => get_string('cssstyles', 'format_onetopic'),
+                //     'help' => 'cssstyles',
+                //     'help_component' => 'format_onetopic',
+                // ),
+
+                // 'bgcolor' => array(
+                    // 'default' => '',
+                    // 'type' => PARAM_RAW,
+                    // 'label' => get_string('bgcolor', 'format_onetopic'),
+                    // 'help' => 'bgcolor',
+                    // 'help_component' => 'format_onetopic',
+                    // 'element_type' => 'select',
+                    // 'element_attributes' => array(
+                        // array(
+                            // ''=>'Default',
+                            // '#007EA8' => 'Cerulean',
+                            // '#008085' => 'Teal',
+                            // '#4F7A7D' => 'Cadet blue',
+                            // '#7B7A1E' => 'Yellow green',
+                            // '#6D7C36' => 'Rain forest',
+                            // '#1D8666' => 'Elf green',
+                            // '#763978' => 'Eminence',
+                            // '#D83B3B' => 'Cinnabar'
+                        // )
+                    // )
+                // )
+// SU_AMEND END
             );
 
             $sectionformatoptions = $sectionformatoptionsedit;
