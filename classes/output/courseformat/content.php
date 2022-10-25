@@ -218,6 +218,7 @@ class content extends content_base {
         $sections = $modinfo->get_section_info_all();
         $numsections = count($sections);
         $displaysection = $this->format->get_section_number();
+        $onetopicconfig = get_config('format_onetopic');
 
         // Can we view the section in question?
         $context = \context_course::instance($course->id);
@@ -255,17 +256,18 @@ class content extends content_base {
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
+                    if (!$onetopicconfig->disable_styling) {
+                        if (!empty($formatoptions['fontcolor'])) {
+                            $customstyles .= 'color: ' . $formatoptions['fontcolor'] . '; ';
+                        }
 
-                    if (!empty($formatoptions['fontcolor'])) {
-                        $customstyles .= 'color: ' . $formatoptions['fontcolor'] . '; ';
-                    }
+                        if (!empty($formatoptions['bgcolor'])) {
+                            $customstyles .= 'background-color: ' . $formatoptions['bgcolor'] . '; ';
+                        }
 
-                    if (!empty($formatoptions['bgcolor'])) {
-                        $customstyles .= 'background-color: ' . $formatoptions['bgcolor'] . '; ';
-                    }
-
-                    if (!empty($formatoptions['cssstyles'])) {
-                        $customstyles .= $formatoptions['cssstyles'] . '; ';
+                        if (!empty($formatoptions['cssstyles'])) {
+                            $customstyles .= $formatoptions['cssstyles'] . '; ';
+                        }
                     }
 
                     if (isset($formatoptions['level'])) {
@@ -350,7 +352,7 @@ class content extends content_base {
                                 $parenttab->selected = true;
                                 $selectedparent = $parenttab;
                             }
-
+                            $parenttab->specialclass = $parenttab->specialclass . ' parenttab';
                             $parenttab->add_child($indextab);
                         }
 
