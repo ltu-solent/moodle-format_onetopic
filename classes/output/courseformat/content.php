@@ -262,6 +262,10 @@ class content extends content_base {
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
+                    if (!$onetopicconfig->disable_styling) {
+                        if (!empty($formatoptions['fontcolor'])) {
+                            $customstyles .= 'color: ' . $formatoptions['fontcolor'] . '; ';
+                        }
 
                     if ($enablecustomstyles) {
                         if (!empty($formatoptions['fontcolor'])) {
@@ -359,7 +363,7 @@ class content extends content_base {
                                 $parenttab->selected = true;
                                 $selectedparent = $parenttab;
                             }
-
+                            $parenttab->specialclass = $parenttab->specialclass . ' parenttab';
                             $parenttab->add_child($indextab);
                         }
 
