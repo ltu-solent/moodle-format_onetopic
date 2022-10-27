@@ -96,3 +96,6 @@ $string['tabsview_vertical'] = 'Vertically';
 $string['tabsview_oneline'] = 'Only one line';
 
 $string['increasesections'] = 'Add a section after the currently selected section';
+
+$string['disable_styling'] = 'Disable styling';
+$string['disable_styling_desc'] = 'Prevent teachers from changing the styling for tabs.';
