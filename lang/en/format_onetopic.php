@@ -99,3 +99,10 @@ $string['increasesections'] = 'Add a section after the currently selected sectio
 
 $string['disable_styling'] = 'Disable styling';
 $string['disable_styling_desc'] = 'Prevent teachers from changing the styling for tabs.';
+
+$string['locksectioncategory'] = 'Lock section category';
+$string['locksectioncategory_desc'] = 'Pattern of category idnumber to apply drag\'n\'drop restrictions on';
+$string['locksections'] = 'Lock sections';
+$string['locksections_desc'] = 'Lock all sections up to this section number';
+$string['locksectionsheading'] = 'Lock sections';
+$string['locksectionsheading_desc'] = 'Settings to determine which sections are locked';

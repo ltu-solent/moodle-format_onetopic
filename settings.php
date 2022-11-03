@@ -25,14 +25,40 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-
 if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configcheckbox(
         'format_onetopic/disable_styling',
         new lang_string('disable_styling', 'format_onetopic'),
-        new lang_string('disable_styling', 'format_onetopic'),
+        new lang_string('disable_styling_desc', 'format_onetopic'),
         0
     ));
 
+    $settings->add(
+        new admin_setting_heading(
+            'format_onetopic/locksectionsheading',
+            new lang_string('locksectionsheading', 'format_onetopic'),
+            new lang_string('locksectionsheading_desc', 'format_onetopic')
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'format_onetopic/locksections',
+            new lang_string('locksections', 'format_onetopic'),
+            new lang_string('locksections_desc', 'format_onetopic'),
+            0,
+            PARAM_INT
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'format_onetopic/locksectioncategory',
+            new lang_string('locksectioncategory', 'format_onetopic'),
+            new lang_string('locksectioncategory_desc', 'format_onetopic'),
+            'modules_',
+            PARAM_RAW
+        )
+    );
 }
