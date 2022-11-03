@@ -28,4 +28,32 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('format_onetopic/enablecustomstyles',
                                                     get_string('enablecustomstyles', 'format_onetopic'),
                                                     get_string('enablecustomstyles_help', 'format_onetopic'), 1));
+
+    $settings->add(
+        new admin_setting_heading(
+            'format_onetopic/locksectionsheading',
+            new lang_string('locksectionsheading', 'format_onetopic'),
+            new lang_string('locksectionsheading_desc', 'format_onetopic')
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'format_onetopic/locksections',
+            new lang_string('locksections', 'format_onetopic'),
+            new lang_string('locksections_desc', 'format_onetopic'),
+            0,
+            PARAM_INT
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configtext(
+            'format_onetopic/locksectioncategory',
+            new lang_string('locksectioncategory', 'format_onetopic'),
+            new lang_string('locksectioncategory_desc', 'format_onetopic'),
+            'modules_',
+            PARAM_RAW
+        )
+    );
 }

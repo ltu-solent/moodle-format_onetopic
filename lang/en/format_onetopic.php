@@ -100,3 +100,10 @@ $string['increasesections'] = 'Add a section after the currently selected sectio
 $string['hiddentabsbar'] = 'The tabs are set to be hidden. They will not be seen when not in edit mode.';
 $string['enablecustomstyles'] = 'Enable custom styles';
 $string['enablecustomstyles_help'] = 'Enable font color, background color and other custom tab styles in the sections configuration.';
+
+$string['locksectioncategory'] = 'Lock section category';
+$string['locksectioncategory_desc'] = 'Pattern of category idnumber to apply drag\'n\'drop restrictions on';
+$string['locksections'] = 'Lock sections';
+$string['locksections_desc'] = 'Lock all sections up to this section number';
+$string['locksectionsheading'] = 'Lock sections';
+$string['locksectionsheading_desc'] = 'Settings to determine which sections are locked';

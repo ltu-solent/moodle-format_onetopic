@@ -26,6 +26,7 @@ namespace format_onetopic\output\courseformat\content\section;
 
 use context_course;
 use core_courseformat\output\local\content\section\controlmenu as controlmenu_base;
+use format_onetopic\solhelper;
 
 /**
  * Base class to render a course section menu.
@@ -51,11 +52,19 @@ class controlmenu extends controlmenu_base {
      */
     public function section_control_items() {
         global $USER;
-
         $format = $this->format;
         $section = $this->section;
         $course = $format->get_course();
         $sectionreturn = $format->get_section_number();
+        // SU_AMEND_START: Extra vars to manage menu items.
+        $numsections = $format->get_last_section_number();
+        $usecomponents = $format->supports_components();
+        $isstealth = $section->section > $numsections;
+        $user = $USER;
+
+        $baseurl = course_get_url($course, $sectionreturn);
+        $baseurl->param('sesskey', sesskey());
+        // SU_AMEND_END.
 
         $coursecontext = context_course::instance($course->id);
         $numsections = $format->get_last_section_number();
@@ -98,6 +107,32 @@ class controlmenu extends controlmenu_base {
                 ];
             }
         }
+        // SU_AMEND_START: Locked sections.
+        $isdraggable = solhelper::isdraggable($course, $section);
+        // Only allow move on items that are draggable.
+        if ($section->section && $isdraggable && $usecomponents) {
+            $url = clone($baseurl);
+            if (!$isstealth) {
+                if (has_capability('moodle/course:movesections', $coursecontext, $user)) {
+                    // This tool will appear only when the state is ready.
+                    $url = clone ($baseurl);
+                    $url->param('movesection', $section->section);
+                    $url->param('section', $section->section);
+                    $controls['movesection'] = [
+                        'url' => $url,
+                        'icon' => 'i/dragdrop',
+                        'name' => get_string('move', 'moodle'),
+                        'pixattr' => ['class' => ''],
+                        'attr' => [
+                            'class' => 'icon move waitstate',
+                            'data-action' => 'moveSection',
+                            'data-id' => $section->id,
+                        ],
+                    ];
+                }
+            }
+        }
+        // SU_AMEND_END.
 
         $movecontrols = [];
         if ($section->section && !$isstealth && has_capability('moodle/course:movesections', $coursecontext, $USER)) {
@@ -192,6 +227,16 @@ class controlmenu extends controlmenu_base {
             }
         }
 
+        // SU_AMEND_START: Prevent hiding or deleting non-draggable sections.
+        if (!solhelper::isdraggable($course, $section)) {
+            unset($merged['visiblity']); // Yes this is a typo.
+            unset($merged['visibility']); // Just in case they correct the typo.
+            unset($merged['delete']);
+            unset($merged['moveup']);
+            unset($merged['movedown']);
+            unset($merged['movesection']);
+        }
+        // SU_AMEND_END.
         return $merged;
     }
 }
