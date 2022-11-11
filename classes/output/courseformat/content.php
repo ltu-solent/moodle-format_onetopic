@@ -318,8 +318,13 @@ class content extends content_base {
                     }
                 }
 
+<<<<<<< HEAD
+=======
+                // SU_AMEND_START: Add hidden from students label to tab title property.
+>>>>>>> Add text to tab title to indicate hidden section
                 $newtab = new \format_onetopic\singletab($section, $sectionname, $url, $title,
                                         $availablemessage, $customstyles, $specialclass);
+                // SU_AMEND_END.
                 $newtab->active = !$inactivetab;
 
                 if ($displaysection == $section) {
