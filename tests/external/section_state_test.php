@@ -39,8 +39,18 @@ use externallib_advanced_testcase;
  * @covers \format_onetopic\output\courseformat\state\section
  */
 class section_state_test extends externallib_advanced_testcase {
-    var $sections;
-    var $activities;
+    /**
+     * Store list of sections
+     *
+     * @var array
+     */
+    private $sections;
+    /**
+     * Store list of activities
+     *
+     * @var array
+     */
+    private $activities;
     /**
      * Reset after test
      *
@@ -63,7 +73,7 @@ class section_state_test extends externallib_advanced_testcase {
     /**
      * Setup to ensure that fixtures are loaded.
      */
-    public static function setupBeforeClass(): void {
+    public static function setupBeforeClass(): void { // phpcs:ignore
         global $CFG;
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->libdir . '/externallib.php');
@@ -73,11 +83,10 @@ class section_state_test extends externallib_advanced_testcase {
      * Test getting courseindex state data for draggable sections
      *
      * @dataProvider get_state_provider
-     *
+     * @param string $catname
      * @return void
      */
     public function test_get_state($catname) {
-        global $PAGE;
         $this->resetAfterTest();
         $category = $this->getDataGenerator()->create_category([
             'idnumber' => $catname
