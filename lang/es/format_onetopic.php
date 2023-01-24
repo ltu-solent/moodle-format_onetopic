@@ -82,3 +82,20 @@ $string['templetetopic_single'] = 'Si, usar el resumen como una plantilla';
 $string['templetetopic_list'] = 'Si, usar el resumen como plantilla y listar los recursos no referenciados';
 $string['templatetopic_icons'] = 'Mostrar icono en enlaces de recursos en el resumen';
 $string['templatetopic_icons_help'] = 'Esta opción define si se muestran o no los iconos de los recursos como parte del nombre, cuando el resumen del tema se utiliza como plantilla.';
+$string['hidden_message'] = 'El tema <em>{$a}</em> no está disponible en este momento.';
+$string['privacy:metadata'] = 'El formato Temas en pestañas no almacena datos personales.';
+$string['hiddensectionshelp'] = 'Las secciones ocultas se muestran en forma colapsada con mensaje de disponibilidad';
+
+$string['tabsview'] = 'Vista de pestañas';
+$string['tabsview_help'] = 'Por defecto: es la vista tradicional de pestañas.<br />
+Verticalmente: se muestran las pestañas al lado izquierdo de manera vertical. El contenido queda a la derecha del menú.<br />
+Una sola línea: todas las pestañas son mostradas en una sola línea, con desplazamiento horizontal si es necesario. Es útil sobre todo cuando hay demasiadas pestañas.';
+$string['tabsview_default'] = 'Por defecto';
+$string['tabsview_vertical'] = 'Verticalmente';
+$string['tabsview_oneline'] = 'Una sola línea';
+
+$string['increasesections'] = 'Adicionar una nueva sección después de la sección actual';
+
+$string['hiddentabsbar'] = 'Las pestañas están configuradas para estar ocultas. No se verán cuando no esté en modo de edición.';
+$string['enablecustomstyles'] = 'Habilitar estilos personalizados';
+$string['enablecustomstyles_help'] = 'Habilitar color de fuente, color de fondo y otros estilos personalizados de pestañas en la configuración de la sección.';

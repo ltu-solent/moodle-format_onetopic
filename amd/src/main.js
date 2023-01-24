@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,19 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Version details.
- *
- * @package format_onetopic
- * @copyright 2015 David Herney Bernal - cirano. https://bambuco.co
+/*
+ * @package   format_onetopic
+ * @copyright 2021 David Herney Bernal - cirano
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+import * as OneLine from 'format_onetopic/oneline';
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Component initialization.
+ *
+ * @method init
+ * @param {string} formattype The course format type: 0: default, 1: vertical, 2: oneline.
+ * @param {object} icons A list of usable icons: left arrow, right arrow.
+ */
+export const init = (formattype, icons) => {
 
-$plugin->version = 2022081607;       // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2022041902;        // Requires this Moodle version.
-$plugin->component = 'format_onetopic'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '4.1.03(PiedrasTeherán)';
-$plugin->dependencies = array('format_topics' => 2022041900);
+    if (formattype == 2) {
+        OneLine.load(icons);
+    }
+};

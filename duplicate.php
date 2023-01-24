@@ -17,20 +17,23 @@
 /**
  * Duplicate resources on a section as a new section
  *
- * @since 2.8
- * @package format_onetopic
+ * @package   format_onetopic
  * @copyright 2015 David Herney Bernal - cirano
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+define('NO_OUTPUT_BUFFERING', true);
 
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/course/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $section = required_param('section', PARAM_INT);
+
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
-$PAGE->set_url('/course/format/onetopic/duplicate.php', array('courseid' => $courseid, 'section' => $section));
+$urlstring = '/course/format/onetopic/duplicate.php';
+$PAGE->set_url($urlstring, ['courseid' => $courseid, 'section' => $section]);
 
 // Authorization checks.
 require_login($course);
@@ -44,6 +47,28 @@ $modinfo = get_fast_modinfo($course);
 $sectioninfo = $modinfo->get_section_info($section);
 $context = context_course::instance($course->id);
 $numnewsection = null;
+
+$cancelurl = course_get_url($course, $sectioninfo);
+$confirm = optional_param('confirm', false, PARAM_BOOL) && confirm_sesskey();
+
+if (!$confirm) {
+    $strconfirm = get_string('duplicate', 'format_onetopic');
+
+    $PAGE->navbar->add($strconfirm);
+    $PAGE->set_title($strconfirm);
+    $PAGE->set_heading($course->fullname);
+    echo $OUTPUT->header();
+    echo $OUTPUT->box_start('noticebox');
+    $optionsyes = ['courseid' => $courseid, 'confirm' => 1, 'section' => $section, 'sesskey' => sesskey()];
+    $duplicateurl = new moodle_url($urlstring, $optionsyes);
+    $formcontinue = new single_button($duplicateurl, get_string('duplicate'));
+    $formcancel = new single_button($cancelurl, get_string('cancel'), 'get');
+    echo $OUTPUT->confirm(get_string('duplicate_confirm', 'format_onetopic',
+        get_section_name($course, $sectioninfo)), $formcontinue, $formcancel);
+    echo $OUTPUT->box_end();
+    echo $OUTPUT->footer();
+    exit;
+}
 
 $PAGE->set_pagelayout('course');
 $PAGE->set_heading($course->fullname);
@@ -63,11 +88,6 @@ if (!empty($sectioninfo)) {
 
     $numnewsection = $lastsectionnum + 1;
 
-    if (!$courseformat->update_course_format_options(array('numsections' => $numnewsection))) {
-        print_error('cantcreatesection', 'error', null, $course->fullname);
-        return;
-    }
-
     $pbar->update_full(5, get_string('creating_section', 'format_onetopic'));
 
     // Assign same section info.
@@ -81,6 +101,26 @@ if (!empty($sectioninfo)) {
     $data->availability = $sectioninfo->availability;
 
     $newsectionid = $DB->insert_record('course_sections', $data, true);
+
+    try {
+        $fs = get_file_storage();
+        $files = $fs->get_area_files($context->id, 'course', 'section', $sectioninfo->id);
+
+        if ($files && is_array($files)) {
+            foreach ($files as $f) {
+
+                $fileinfo = array(
+                    'contextid' => $context->id,
+                    'component' => 'course',
+                    'filearea' => 'section',
+                    'itemid' => $newsectionid);
+
+                $fs->create_file_from_storedfile($fileinfo, $f);
+            }
+        }
+    } catch (Exception $e) {
+        debugging('Error copying section files.' . $e->getMessage(), DEBUG_DEVELOPER);
+    }
 
     $moved = move_section_to($course, $numnewsection, $section + 1);
     if ($moved) {
@@ -104,6 +144,9 @@ if (!empty($sectioninfo)) {
         );
     $event->trigger();
 
+    $course = course_get_format($course)->get_course();
+    $modinfo = get_fast_modinfo($course);
+
     $pbar->update_full(10, get_string('rebuild_course_cache', 'format_onetopic'));
     $newsectioninfo = $modinfo->get_section_info($numnewsection);
 
@@ -126,12 +169,13 @@ if (!empty($sectioninfo)) {
                 $cm  = get_coursemodule_from_id('', $mod->id, 0, true, MUST_EXIST);
 
                 $modcontext = context_module::instance($cm->id);
-                if (has_capability('moodle/course:manageactivities', $modcontext)) {
+                if (has_capability('moodle/course:manageactivities', $modcontext) && !$cm->deletioninprogress) {
                     // Duplicate the module.
                     $newcm = duplicate_module($course, $cm);
 
                     // Move new module to new section.
                     if ($newcm && is_object($newcm)) {
+                        $DB->set_field($newcm->modname, 'name', $cm->name, ['id' => $newcm->instance]);
                         moveto_module($newcm, $newsectioninfo);
                     }
                 }

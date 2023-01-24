@@ -40,45 +40,23 @@ if ($topic = optional_param('topic', 0, PARAM_INT)) {
 // End backwards-compatible aliasing.
 
 $context = context_course::instance($course->id);
+// Retrieve course format option fields and add them to the $course object.
+$course = course_get_format($course)->get_course();
 
 if (($marker >= 0) && has_capability('moodle/course:setcurrentsection', $context) && confirm_sesskey()) {
     $course->marker = $marker;
     course_set_marker($course->id, $marker);
 }
 
-// Make sure all sections are created.
-$course = course_get_format($course)->get_course();
-course_create_sections_if_missing($course, range(0, $course->numsections));
-
 // Onetopic format is always multipage.
-$course->realcoursedisplay = $course->coursedisplay == COURSE_DISPLAY_MULTIPAGE;
+$course->realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay == COURSE_DISPLAY_MULTIPAGE : false;
 $course->coursedisplay = COURSE_DISPLAY_MULTIPAGE;
 
 $renderer = $PAGE->get_renderer('format_onetopic');
 
-$section = optional_param('section', -1, PARAM_INT);
+$section = $displaysection;
 
-if (isset($section) && $section >= 0 && $course->numsections >= $section) {
-     $USER->display[$course->id] = $section;
-     $displaysection = $section;
-} else {
-    if (isset($USER->display[$course->id]) && $course->numsections >= $USER->display[$course->id]) {
-// SSU_AMEND START - SET TAB AS CURRENT
-        //$displaysection = $USER->display[$course->id];
-		$displaysection = $course->marker;
-// SSU_AMEND END
-    } else {
-        $USER->display[$course->id] = 0;
-        $displaysection = 0;
-// SSU_AMEND START - SET TAB AS CURRENT		
-		if($course->marker){
-			$displaysection = $course->marker;
-		}else{
-			$displaysection = 0;
-		}
-// SSU_AMEND END
-    }
-}
+$renderer->numsections = course_get_format($course)->get_last_section_number();
 
 $disableajax = optional_param('onetopic_da', -1, PARAM_INT);
 
@@ -94,8 +72,24 @@ if ($disableajax !== -1) {
     }
 }
 
-$renderer->print_single_section_page($course, null, $mods, $modnames, $modnamesused, $displaysection);
+if (!empty($displaysection)) {
+    $format->set_section_number($displaysection);
+}
+
+$outputclass = $format->get_output_classname('content');
+$widget = new $outputclass($format);
+echo $renderer->render($widget);
 
 // Include course format js module.
 $PAGE->requires->js('/course/format/topics/format.js');
 $PAGE->requires->js('/course/format/onetopic/format.js');
+$PAGE->requires->yui_module('moodle-core-notification-dialogue', 'M.course.format.dialogueinit');
+
+$params = array(
+    'formattype' => $course->tabsview,
+    'icons' => [
+        'left' => $OUTPUT->pix_icon('t/collapsed_rtl', ''),
+        'right' => $OUTPUT->pix_icon('t/collapsed', ''),
+    ]
+);
+$PAGE->requires->js_call_amd('format_onetopic/main', 'init', $params);

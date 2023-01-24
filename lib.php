@@ -26,6 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot. '/course/format/lib.php');
 
+use core\output\inplace_editable;
+
 /**
  * Main class for the Onetopic course format
  *
@@ -34,7 +36,7 @@ require_once($CFG->dirroot. '/course/format/lib.php');
  * @copyright 2012 David Herney Bernal - cirano
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class format_onetopic extends format_base {
+class format_onetopic extends core_courseformat\base {
 
     /** @var int The summary is not a template */
     const TEMPLATETOPIC_NOT = 0;
@@ -45,10 +47,31 @@ class format_onetopic extends format_base {
     /** @var int The summary is a template, list the resources that are not referenced */
     const TEMPLATETOPIC_LIST = 2;
 
+    /** @var int Default tabs view */
+    const TABSVIEW_DEFAULT = 0;
+
+    /** @var int Vertical view */
+    const TABSVIEW_VERTICAL = 1;
+
+    /** @var int One line view */
+    const TABSVIEW_ONELINE = 2;
+
+    /** @var bool If the class was previously instanced, in one execution cycle */
+    private static $loaded = false;
+
+    /** @var array Messages to display */
+    public static $formatmsgs = [];
+
+    /** @var stdClass Onetopic-specific extra section information */
+    private $parentsections = null;
+
+    /** @var array Modules used in template */
+    public $tplcmsused = [];
+
     /**
      * Creates a new instance of class
      *
-     * Please use {@link course_get_format($courseorid)} to get an instance of the format class
+     * Please use {@see course_get_format($courseorid)} to get an instance of the format class
      *
      * @param string $format
      * @param int $courseid
@@ -57,24 +80,85 @@ class format_onetopic extends format_base {
     protected function __construct($format, $courseid) {
         parent::__construct($format, $courseid);
 
-        // Hack for section number, when not is like a param in the url.
-        global $section, $PAGE, $USER, $urlparams;
+        // Hack for section number, when not is like a param in the url or section is not available.
+        global $section, $sectionid, $PAGE, $USER, $urlparams, $DB, $context;
 
-        if (empty($section)) {
-            $course = format_base::get_course();
-            if (isset($USER->display[$courseid]) && ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')
-                    && isset($urlparams) && is_array($urlparams) && $course->numsections >= $USER->display[$course->id]) {
+        $course = $this->get_course();
 
-                $section = $USER->display[$courseid];
-                $urlparams['section'] = $USER->display[$courseid];
-                $PAGE->set_url('/course/view.php', $urlparams);
+        if (!self::$loaded && isset($section) && $courseid &&
+                ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')) {
+            self::$loaded = true;
 
+            if ($sectionid <= 0) {
+                $section = optional_param('section', -1, PARAM_INT);
             }
+
+            $numsections = (int)$DB->get_field('course_sections', 'MAX(section)', ['course' => $courseid], MUST_EXIST);
+
+            if ($section >= 0 && $numsections >= $section) {
+                $realsection = $section;
+            } else {
+                if (isset($USER->display[$course->id]) && $numsections >= $USER->display[$course->id]) {
+                    $realsection = $USER->display[$course->id];
+                } else if ($course->marker && $course->marker > 0) {
+                    $realsection = (int)$course->marker;
+                } else {
+                    $realsection = 0;
+                }
+            }
+
+            if ($realsection < 0 || $realsection > $numsections) {
+                $realsection = 0;
+            }
+
+            // Onetopic format is always multipage.
+            $realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay : false;
+
+            if ($realcoursedisplay == COURSE_DISPLAY_MULTIPAGE && $realsection === 0 && $numsections >= 1) {
+                $realsection = 1;
+            }
+
+            // Can view the hidden sections in current course?
+            $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
+
+            $modinfo = get_fast_modinfo($course);
+            $sections = $modinfo->get_section_info_all();
+
+            // Check if the display section is available.
+            if ((!$canviewhidden && (!$sections[$realsection]->uservisible || !$sections[$realsection]->available))) {
+
+                self::$formatmsgs[] = get_string('hidden_message', 'format_onetopic', $this->get_section_name($realsection));
+
+                $valid = false;
+                $k = $realcoursedisplay ? 1 : 0;
+
+                do {
+                    $formatoptions = $this->get_format_options($k);
+                    if ($formatoptions['level'] == 0
+                            && ($sections[$k]->available && $sections[$k]->uservisible)
+                            || $canviewhidden) {
+                        $valid = true;
+                        break;
+                    }
+
+                    $k++;
+
+                } while (!$valid && $k <= $numsections);
+
+                $realsection = $valid ? $k : 0;
+            }
+
+            $section = $realsection;
+            $USER->display[$course->id] = $realsection;
+            $urlparams['section'] = $realsection;
+            $PAGE->set_url('/course/view.php', $urlparams);
+
         }
+
     }
 
     /**
-     * Returns true if this course format uses sections
+     * Returns true if this course format uses sections.
      *
      * @return bool
      */
@@ -83,9 +167,27 @@ class format_onetopic extends format_base {
     }
 
     /**
+     * Returns true if this course format uses course index
+     *
+     * @return bool
+     */
+    public function uses_course_index() {
+        return true;
+    }
+
+    /**
+     * Returns true if this course format uses activity indentation.
+     *
+     * @return bool if the course format uses indentation.
+     */
+    public function uses_indentation(): bool {
+        return false;
+    }
+
+    /**
      * Returns the display name of the given section that the course prefers.
      *
-     * Use section name is specified by user. Otherwise use default ("Topic #")
+     * Use section name is specified by user. Otherwise use default ("Topic #").
      *
      * @param int|stdClass $section Section object from database or just field section.section
      * @return string Display name that the course format prefers, e.g. "Topic 2"
@@ -93,17 +195,8 @@ class format_onetopic extends format_base {
     public function get_section_name($section) {
         $section = $this->get_section($section);
         if ((string)$section->name !== '') {
-// SSU_AMEND START - RESTRICT SECTION (TAB) NAME LENGTH
-            // return format_string($section->name, true,
-                    // array('context' => context_course::instance($this->courseid)));
-			$sec = format_string($section->name, true,
-                    array('context' => context_course::instance($this->courseid)));
-
-			if($section->course > 2){
-				$sec = substr($sec,0,30);	
-			}
-// SSU_AMEND END			
-			return $sec;
+            return format_string($section->name, true,
+                ['context' => context_course::instance($this->courseid)]);
         } else {
             return $this->get_default_section_name($section);
         }
@@ -113,18 +206,34 @@ class format_onetopic extends format_base {
      * Returns the default section name for the topics course format.
      *
      * If the section number is 0, it will use the string with key = section0name from the course format's lang file.
-     * If the section number is not 0, the base implementation of format_base::get_default_section_name which uses
+     * If the section number is not 0, the base implementation of course_format::get_default_section_name which uses
      * the string with the key = 'sectionname' from the course format's lang file + the section number will be used.
      *
      * @param stdClass $section Section object from database or just field course_sections section
      * @return string The default value for the section name.
      */
     public function get_default_section_name($section) {
-        return get_string('sectionname', 'format_onetopic') . ' ' . $section->section;
+        if ($section->section == 0) {
+            // Return the general section.
+            return get_string('section0name', 'format_topics');
+        } else {
+            // Use course_format::get_default_section_name implementation which
+            // will display the section name in "Topic n" format.
+            return parent::get_default_section_name($section);
+        }
     }
 
     /**
-     * The URL to use for the specified course (with section)
+     * Generate the title for this section page.
+     *
+     * @return string the page title
+     */
+    public function page_title(): string {
+        return get_string('topicoutline');
+    }
+
+    /**
+     * The URL to use for the specified course (with section).
      *
      * @param int|stdClass $section Section object from database or just field course_sections.section
      *     if omitted the course view page is returned
@@ -133,9 +242,10 @@ class format_onetopic extends format_base {
      *     'sr' (int) used by multipage formats to specify to which section to return
      * @return null|moodle_url
      */
-    public function get_view_url($section, $options = array()) {
+    public function get_view_url($section, $options = []) {
+        global $CFG;
         $course = $this->get_course();
-        $url = new moodle_url('/course/view.php', array('id' => $course->id));
+        $url = new moodle_url('/course/view.php', ['id' => $course->id]);
 
         $sr = null;
         if (array_key_exists('sr', $options)) {
@@ -163,7 +273,7 @@ class format_onetopic extends format_base {
     }
 
     /**
-     * Returns the information about the ajax support in the given source format
+     * Returns the information about the ajax support in the given source format.
      *
      * The returned object's property (boolean)capable indicates that
      * the course format supports Moodle course ajax features.
@@ -171,13 +281,17 @@ class format_onetopic extends format_base {
      * @return stdClass
      */
     public function supports_ajax() {
-        global $course, $USER;
+        global $COURSE, $USER;
 
         if (!isset($USER->onetopic_da)) {
-            $USER->onetopic_da = array();
+            $USER->onetopic_da = [];
         }
 
-        $disableajax = isset($USER->onetopic_da[$course->id]) ? $USER->onetopic_da[$course->id] : false;
+        if (empty($COURSE)) {
+            $disableajax = false;
+        } else {
+            $disableajax = isset($USER->onetopic_da[$COURSE->id]) ? $USER->onetopic_da[$COURSE->id] : false;
+        }
 
         $ajaxsupport = new stdClass();
         $ajaxsupport->capable = !$disableajax;
@@ -185,13 +299,31 @@ class format_onetopic extends format_base {
     }
 
     /**
-     * Loads all of the course sections into the navigation
+     * Returns true if this course format is compatible with content components.
+     *
+     * Using components means the content elements can watch the frontend course state and
+     * react to the changes. Formats with component compatibility can have more interactions
+     * without refreshing the page, like having drag and drop from the course index to reorder
+     * sections and activities.
+     *
+     * @return bool if the format is compatible with components.
+     */
+    public function supports_components() {
+        return true;
+    }
+
+    /**
+     * Loads all of the course sections into the navigation.
      *
      * @param global_navigation $navigation
      * @param navigation_node $node The course node within the navigation
+     * @return void
      */
     public function extend_course_navigation($navigation, navigation_node $node) {
         global $PAGE, $COURSE, $USER;
+
+        // Set the section number for the course node.
+        $node->action->param('section', 0);
 
         // If section is specified in course/view.php, make sure it is expanded in navigation.
         if ($navigation->includesectionnum === false) {
@@ -225,7 +357,7 @@ class format_onetopic extends format_base {
     }
 
     /**
-     * Custom action after section has been moved in AJAX mode
+     * Custom action after section has been moved in AJAX mode.
      *
      * Used in course/rest.php
      *
@@ -233,7 +365,7 @@ class format_onetopic extends format_base {
      */
     public function ajax_section_move() {
         global $PAGE;
-        $titles = array();
+        $titles = [];
         $course = $this->get_course();
         $modinfo = get_fast_modinfo($course);
         $renderer = $this->get_renderer($PAGE);
@@ -242,28 +374,27 @@ class format_onetopic extends format_base {
                 $titles[$number] = $renderer->section_title($section, $course);
             }
         }
-        return array('sectiontitles' => $titles, 'action' => 'move');
+        return ['sectiontitles' => $titles, 'action' => 'move'];
     }
 
     /**
-     * Returns the list of blocks to be automatically added for the newly created course
+     * Returns the list of blocks to be automatically added for the newly created course.
      *
      * @return array of default blocks, must contain two keys BLOCK_POS_LEFT and BLOCK_POS_RIGHT
      *     each of values is an array of block names (for left and right side columns)
      */
     public function get_default_blocks() {
-        return array(
-            BLOCK_POS_LEFT => array(),
-            BLOCK_POS_RIGHT => array()
-        );
+        return [
+            BLOCK_POS_LEFT => [],
+            BLOCK_POS_RIGHT => [],
+        ];
     }
 
     /**
-     * Definitions of the additional options that this course format uses for course
+     * Definitions of the additional options that this course format uses for course.
      *
      * Topics format uses the following options:
      * - coursedisplay
-     * - numsections
      * - hiddensections
      *
      * @param bool $foreditform
@@ -273,111 +404,112 @@ class format_onetopic extends format_base {
         static $courseformatoptions = false;
         if ($courseformatoptions === false) {
             $courseconfig = get_config('moodlecourse');
-            $courseformatoptions = array(
-                'numsections' => array(
-                    'default' => $courseconfig->numsections,
-                    'type' => PARAM_INT
-                ),
-                'hiddensections' => array(
+            $courseformatoptions = [
+                'hiddensections' => [
                     'default' => $courseconfig->hiddensections,
                     'type' => PARAM_INT
-                ),
-                'hidetabsbar' => array(
+                ],
+                'hidetabsbar' => [
                     'default' => 0,
                     'type' => PARAM_INT
-                ),
-                'coursedisplay' => array(
+                ],
+                'coursedisplay' => [
                     'default' => $courseconfig->coursedisplay,
                     'type' => PARAM_INT
-                ),
-                'templatetopic' => array(
+                ],
+                'templatetopic' => [
                     'default' => self::TEMPLATETOPIC_NOT,
                     'type' => PARAM_INT
-                ),
-                'templatetopic_icons' => array(
+                ],
+                'templatetopic_icons' => [
                     'default' => 0,
                     'type' => PARAM_INT
-                )
-            );
+                ],
+                'tabsview' => [
+                    'default' => 0,
+                    'type' => PARAM_INT
+                ]
+            ];
         }
+
         if ($foreditform && !isset($courseformatoptions['coursedisplay']['label'])) {
-            $courseconfig = get_config('moodlecourse');
-            $max = $courseconfig->maxsections;
-            if (!isset($max) || !is_numeric($max)) {
-                $max = 52;
-            }
-            $sectionmenu = array();
-            for ($i = 0; $i <= $max; $i++) {
-                $sectionmenu[$i] = "$i";
-            }
-            $courseformatoptionsedit = array(
-                'numsections' => array(
-                    'label' => new lang_string('numberweeks'),
-                    'element_type' => 'select',
-                    'element_attributes' => array($sectionmenu),
-                ),
-                'hiddensections' => array(
+            $courseformatoptionsedit = [
+                'hiddensections' => [
                     'label' => new lang_string('hiddensections'),
                     'help' => 'hiddensections',
                     'help_component' => 'moodle',
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             0 => new lang_string('hiddensectionscollapsed'),
-                            1 => new lang_string('hiddensectionsinvisible')
-                        )
-                    ),
-                ),
-                'hidetabsbar' => array(
+                            1 => new lang_string('hiddensectionsinvisible'),
+                            2 => new lang_string('hiddensectionshelp', 'format_onetopic')
+                        ]
+                    ],
+                ],
+                'hidetabsbar' => [
                     'label' => get_string('hidetabsbar', 'format_onetopic'),
                     'help' => 'hidetabsbar',
                     'help_component' => 'format_onetopic',
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             0 => new lang_string('no'),
                             1 => new lang_string('yes')
-                        )
-                    ),
-                ),
-                'coursedisplay' => array(
+                        ]
+                    ],
+                ],
+                'coursedisplay' => [
                     'label' => new lang_string('coursedisplay', 'format_onetopic'),
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             COURSE_DISPLAY_SINGLEPAGE => new lang_string('coursedisplay_single', 'format_onetopic'),
                             COURSE_DISPLAY_MULTIPAGE => new lang_string('coursedisplay_multi', 'format_onetopic')
-                        )
-                    ),
+                        ]
+                    ],
                     'help' => 'coursedisplay',
                     'help_component' => 'format_onetopic',
-                ),
-                'templatetopic' => array(
+                ],
+                'templatetopic' => [
                     'label' => new lang_string('templatetopic', 'format_onetopic'),
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             self::TEMPLATETOPIC_NOT => new lang_string('templetetopic_not', 'format_onetopic'),
                             self::TEMPLATETOPIC_SINGLE => new lang_string('templetetopic_single', 'format_onetopic'),
                             self::TEMPLATETOPIC_LIST => new lang_string('templetetopic_list', 'format_onetopic')
-                        )
-                    ),
+                        ]
+                    ],
                     'help' => 'templatetopic',
                     'help_component' => 'format_onetopic',
-                ),
-                'templatetopic_icons' => array(
+                ],
+                'templatetopic_icons' => [
                     'label' => get_string('templatetopic_icons', 'format_onetopic'),
                     'help' => 'templatetopic_icons',
                     'help_component' => 'format_onetopic',
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             0 => new lang_string('no'),
                             1 => new lang_string('yes')
-                        )
-                    ),
-                )
-            );
+                        ]
+                    ],
+                ],
+                'tabsview' => [
+                    'label' => new lang_string('tabsview', 'format_onetopic'),
+                    'element_type' => 'select',
+                    'element_attributes' => [
+                        [
+                            self::TABSVIEW_DEFAULT => new lang_string('tabsview_default', 'format_onetopic'),
+                            self::TABSVIEW_VERTICAL => new lang_string('tabsview_vertical', 'format_onetopic'),
+                            self::TABSVIEW_ONELINE => new lang_string('tabsview_oneline', 'format_onetopic')
+                        ]
+                    ],
+                    'help' => 'tabsview',
+                    'help_component' => 'format_onetopic',
+                ]
+            ];
             $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
         return $courseformatoptions;
@@ -386,43 +518,42 @@ class format_onetopic extends format_base {
     /**
      * Adds format options elements to the course/section edit form.
      *
-     * This function is called from {@link course_edit_form::definition_after_data()}.
+     * This function is called from {@see course_edit_form::definition_after_data()}.
      *
      * @param MoodleQuickForm $mform form the elements are added to.
      * @param bool $forsection 'true' if this is a section edit form, 'false' if this is course edit form.
      * @return array array of references to the added form elements.
      */
     public function create_edit_form_elements(&$mform, $forsection = false) {
+        global $COURSE;
         $elements = parent::create_edit_form_elements($mform, $forsection);
 
-        // Increase the number of sections combo box values if the user has increased the number of sections
-        // using the icon on the course page beyond course 'maxsections' or course 'maxsections' has been
-        // reduced below the number of sections already set for the course on the site administration course
-        // defaults page.  This is so that the number of sections is not reduced leaving unintended orphaned
-        // activities / resources.
-        if (!$forsection) {
-            $maxsections = get_config('moodlecourse', 'maxsections');
-            $numsections = $mform->getElementValue('numsections');
-            $numsections = $numsections[0];
-            if ($numsections > $maxsections) {
-                $element = $mform->getElement('numsections');
-                for ($i = $maxsections + 1; $i <= $numsections; $i++) {
-                    $element->addOption("$i", $i);
-                }
+        if (!$forsection && (empty($COURSE->id) || $COURSE->id == SITEID)) {
+            // Add "numsections" element to the create course form - it will force new course to be prepopulated
+            // with empty sections.
+            // The "Number of sections" option is no longer available when editing course, instead teachers should
+            // delete and add sections when needed.
+            $courseconfig = get_config('moodlecourse');
+            $max = (int)$courseconfig->maxsections;
+            $element = $mform->addElement('select', 'numsections', get_string('numberweeks'), range(0, $max ?: 52));
+            $mform->setType('numsections', PARAM_INT);
+            if (is_null($mform->getElementValue('numsections'))) {
+                $mform->setDefault('numsections', $courseconfig->numsections);
             }
+            array_unshift($elements, $element);
         }
+
         return $elements;
     }
 
     /**
-     * Updates format options for a course
+     * Updates format options for a course.
      *
-     * In case if course format was changed to 'onetopic', we try to copy special options from the previous format.
-     * If previous course format did not have the options, we populate it with the
-     * current number of sections and default options
+     * In case if course format was changed to 'onetopic', we try to copy
+     * special options from the previous format.
      *
-     * @param stdClass|array $data return value from {@link moodleform::get_data()} or array with data
-     * @param stdClass $oldcourse if this function is called from {@link update_course()}
+     * @param stdClass|array $data return value from {@see moodleform::get_data()} or array with data
+     * @param stdClass $oldcourse if this function is called from {@see update_course()}
      *     this object contains information about the course before update
      * @return bool whether there were any changes to the options values
      */
@@ -436,15 +567,6 @@ class format_onetopic extends format_base {
                 if (!array_key_exists($key, $data)) {
                     if (array_key_exists($key, $oldcourse)) {
                         $data[$key] = $oldcourse[$key];
-                    } else if ($key === 'numsections') {
-                        // If previous format does not have the field 'numsections' and $data['numsections'] is not set,
-                        // we fill it with the maximum section number from the DB.
-                        $maxsection = $DB->get_field_sql('SELECT max(section) from {course_sections} WHERE course = ?',
-                            array($this->courseid));
-                        if ($maxsection) {
-                            // If there are no sections, or just default 0-section, 'numsections' will be set to default.
-                            $data['numsections'] = $maxsection;
-                        }
                     } else if ($key === 'hidetabsbar') {
                         // If previous format does not have the field 'hidetabsbar' and $data['hidetabsbar'] is not set,
                         // we fill it with the default option.
@@ -453,34 +575,24 @@ class format_onetopic extends format_base {
                         $data['templatetopic'] = self::TEMPLATETOPIC_NOT;
                     } else if ($key === 'templatetopic_icons') {
                         $data['templatetopic_icons'] = 0;
+                    } else if ($key === 'tabsview') {
+                        $data['tabsview'] = self::TABSVIEW_DEFAULT;
                     }
                 }
             }
         }
-        $changed = $this->update_format_options($data);
-        if ($changed && array_key_exists('numsections', $data)) {
-            // If the numsections was decreased, try to completely delete the orphaned sections (unless they are not empty).
-            $numsections = (int)$data['numsections'];
-            $maxsection = $DB->get_field_sql('SELECT max(section) from {course_sections} WHERE course = ?',
-                array($this->courseid));
-            for ($sectionnum = $maxsection; $sectionnum > $numsections; $sectionnum--) {
-                if (!$this->delete_section($sectionnum, false)) {
-                    break;
-                }
-            }
-        }
-        return $changed;
+        return $this->update_format_options($data);
     }
 
     /**
-     * Definitions of the additional options that this course format uses for section
+     * Definitions of the additional options that this course format uses for section.
      *
-     * See {@link format_base::course_format_options()} for return array definition.
+     * See {@see format_base::course_format_options()} for return array definition.
      *
      * Additionally section format options may have property 'cache' set to true
-     * if this option needs to be cached in {@link get_fast_modinfo()}. The 'cache' property
-     * is recommended to be set only for fields used in {@link format_base::get_section_name()},
-     * {@link format_base::extend_course_navigation()} and {@link format_base::get_view_url()}
+     * if this option needs to be cached in {@see get_fast_modinfo()}. The 'cache' property
+     * is recommended to be set only for fields used in {@see format_base::get_section_name()},
+     * {@see format_base::extend_course_navigation()} and {@see format_base::get_view_url()}
      *
      * For better performance cached options are recommended to have 'cachedefault' property
      * Unlike 'default', 'cachedefault' should be static and not access get_config().
@@ -500,76 +612,88 @@ class format_onetopic extends format_base {
     public function section_format_options($foreditform = false) {
         static $sectionformatoptions = false;
 
+        $enablecustomstyles = get_config('format_onetopic', 'enablecustomstyles');
+
         if ($sectionformatoptions === false) {
-            $sectionformatoptions = array(
-                'level' => array(
+            $sectionformatoptions = [
+                'level' => [
                     'default' => 0,
                     'type' => PARAM_INT
-                ),
-                'firsttabtext' => array(
-                    'default' => 0,
+                ],
+                'firsttabtext' => [
+                    'default' => get_string('index', 'format_onetopic'),
                     'type' => PARAM_TEXT
-                ),
-                'fontcolor' => array(
+                ]
+            ];
+
+            if ($enablecustomstyles) {
+                $sectionformatoptions['fontcolor'] = [
                     'default' => '',
                     'type' => PARAM_RAW
-                ),
-                'bgcolor' => array(
+                ];
+
+                $sectionformatoptions['bgcolor'] = [
                     'default' => '',
                     'type' => PARAM_RAW
-                ),
-                'cssstyles' => array(
+                ];
+
+                $sectionformatoptions['cssstyles'] = [
                     'default' => '',
                     'type' => PARAM_RAW
-                )
-            );
+                ];
+            }
         }
 
         if ($foreditform) {
-            $sectionformatoptionsedit = array(
-                'level' => array(
+            $sectionformatoptionsedit = [
+                'level' => [
                     'default' => 0,
                     'type' => PARAM_INT,
                     'label' => get_string('level', 'format_onetopic'),
                     'element_type' => 'select',
-                    'element_attributes' => array(
-                        array(
+                    'element_attributes' => [
+                        [
                             0 => get_string('asprincipal', 'format_onetopic'),
                             1 => get_string('aschild', 'format_onetopic')
-                        )
-                    ),
+                        ]
+                        ],
                     'help' => 'level',
                     'help_component' => 'format_onetopic',
-                ),
-                'firsttabtext' => array(
+                ],
+                'firsttabtext' => [
                     'default' => get_string('index', 'format_onetopic'),
                     'type' => PARAM_TEXT,
                     'label' => get_string('firsttabtext', 'format_onetopic'),
                     'help' => 'firsttabtext',
                     'help_component' => 'format_onetopic',
-                ),
-                'fontcolor' => array(
+                ]
+            ];
+
+            if ($enablecustomstyles) {
+                $sectionformatoptionsedit['fontcolor'] = [
                     'default' => '',
                     'type' => PARAM_RAW,
                     'label' => get_string('fontcolor', 'format_onetopic'),
                     'help' => 'fontcolor',
                     'help_component' => 'format_onetopic',
-                ),
-                'bgcolor' => array(
+                ];
+
+                $sectionformatoptionsedit['bgcolor'] = [
                     'default' => '',
                     'type' => PARAM_RAW,
                     'label' => get_string('bgcolor', 'format_onetopic'),
                     'help' => 'bgcolor',
                     'help_component' => 'format_onetopic',
-                ),
-                'cssstyles' => array(
+                ];
+
+                $sectionformatoptionsedit['cssstyles'] = [
                     'default' => '',
                     'type' => PARAM_RAW,
                     'label' => get_string('cssstyles', 'format_onetopic'),
                     'help' => 'cssstyles',
                     'help_component' => 'format_onetopic',
-                )
-            );
+                ];
+            }
 
             $sectionformatoptions = $sectionformatoptionsedit;
         }
@@ -578,9 +702,9 @@ class format_onetopic extends format_base {
 
 
     /**
-     * Whether this format allows to delete sections
+     * Whether this format allows to delete sections.
      *
-     * Do not call this function directly, instead use {@link course_can_delete_section()}
+     * Do not call this function directly, instead use {@see course_can_delete_section()}
      *
      * @param int|stdClass|section_info $section
      * @return bool
@@ -589,6 +713,27 @@ class format_onetopic extends format_base {
         return true;
     }
 
+    /**
+     * Prepares the templateable object to display section name.
+     *
+     * @param \section_info|\stdClass $section
+     * @param bool $linkifneeded
+     * @param bool $editable
+     * @param null|lang_string|string $edithint
+     * @param null|lang_string|string $editlabel
+     * @return inplace_editable
+     */
+    public function inplace_editable_render_section_name($section, $linkifneeded = true,
+            $editable = null, $edithint = null, $editlabel = null) {
+        if (empty($edithint)) {
+            $edithint = new lang_string('editsectionname', 'format_topics');
+        }
+        if (empty($editlabel)) {
+            $title = get_section_name($section->course, $section);
+            $editlabel = new lang_string('newsectionname', 'format_topics', $title);
+        }
+        return parent::inplace_editable_render_section_name($section, $linkifneeded, $editable, $edithint, $editlabel);
+    }
 
     /**
      * Indicates whether the course format supports the creation of a news forum.
@@ -597,6 +742,145 @@ class format_onetopic extends format_base {
      */
     public function supports_news() {
         return true;
+    }
+
+    /**
+     * Returns whether this course format allows the activity to
+     * have "triple visibility state" - visible always, hidden on course page but available, hidden.
+     *
+     * @param stdClass|cm_info $cm course module (may be null if we are displaying a form for adding a module)
+     * @param stdClass|section_info $section section where this module is located or will be added to
+     * @return bool
+     */
+    public function allow_stealth_module_visibility($cm, $section) {
+        // Allow the third visibility state inside visible sections or in section 0.
+        return !$section->section || $section->visible;
+    }
+
+    /**
+     * Callback used in WS core_course_edit_section when teacher performs an AJAX action on a section (show/hide).
+     *
+     * Access to the course is already validated in the WS but the callback has to make sure
+     * that particular action is allowed by checking capabilities
+     *
+     * Course formats should register.
+     *
+     * @param section_info|stdClass $section
+     * @param string $action
+     * @param int $sr
+     * @return null|array any data for the Javascript post-processor (must be json-encodeable)
+     */
+    public function section_action($section, $action, $sr) {
+        global $PAGE;
+
+        if ($section->section && ($action === 'setmarker' || $action === 'removemarker')) {
+            // Format 'topics' allows to set and remove markers in addition to common section actions.
+            require_capability('moodle/course:setcurrentsection', context_course::instance($this->courseid));
+            course_set_marker($this->courseid, ($action === 'setmarker') ? $section->section : 0);
+            return null;
+        }
+
+        // For show/hide actions call the parent method and return the new content for .section_availability element.
+        $rv = parent::section_action($section, $action, $sr);
+        $renderer = $PAGE->get_renderer('format_topics');
+
+        if (!($section instanceof section_info)) {
+            $modinfo = course_modinfo::instance($this->courseid);
+            $section = $modinfo->get_section_info($section->section);
+        }
+        $elementclass = $this->get_output_classname('content\\section\\availability');
+        $availability = new $elementclass($this, $section);
+
+        $rv['section_availability'] = $renderer->render($availability);
+        return $rv;
+    }
+
+    /**
+     * Return the plugin configs for external functions.
+     *
+     * @return array the list of configuration settings
+     * @since Moodle 3.5
+     */
+    public function get_config_for_external() {
+        // Return everything (nothing to hide).
+        return $this->get_format_options();
+    }
+
+    /**
+     * Return Onetopic-specific extra section information.
+     *
+     * @return bool
+     */
+    public function fot_get_sections_extra() {
+
+        if (isset($this->parentsections)) {
+            return $this->parentsections;
+        }
+
+        $course = $this->get_course();
+        $realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay : false;
+        $firstsection = ($realcoursedisplay == COURSE_DISPLAY_MULTIPAGE) ? 1 : 0;
+        $sections = $this->get_sections();
+        $parentsections = [];
+        $level0section = null;
+        foreach ($sections as $section) {
+
+            if ($section->section <= $firstsection || $section->level <= 0) {
+                $parent = null;
+                $level0section = $section;
+            } else {
+                $parent = $level0section;
+            }
+            $parentsections[$section->section] = $parent;
+        }
+        $this->parentsections = $parentsections;
+        return $parentsections;
+    }
+
+    /**
+     * Allows to specify for modinfo that section is not available even when it is visible and conditionally available.
+     *
+     * @param section_info $section
+     * @param bool $available the 'available' propery of the section_info as it was evaluated by conditional availability.
+     * @param string $availableinfo the 'availableinfo' propery of the section_info as it was evaluated by conditional availability.
+     */
+    public function section_get_available_hook(section_info $section, &$available, &$availableinfo) {
+
+        // Only check childs tabs visibility.
+        if ($section->level == 0) {
+            return;
+        }
+
+        // The tab visibility depend of parent visibility.
+        $parentsections = $this->fot_get_sections_extra();
+        $parent = $parentsections[$section->section];
+        if ($parent) {
+            if (!($parent->visible && $parent->available)) {
+                $available = false;
+                if (!$parent->uservisible) {
+                    $availableinfo = '';
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Implements callback inplace_editable() allowing to edit values in-place.
+ *
+ * @param string $itemtype
+ * @param int $itemid
+ * @param mixed $newvalue
+ * @return \core\output\inplace_editable
+ */
+function format_onetopics_inplace_editable($itemtype, $itemid, $newvalue) {
+    global $DB, $CFG;
+    require_once($CFG->dirroot . '/course/lib.php');
+    if ($itemtype === 'sectionname' || $itemtype === 'sectionnamenl') {
+        $section = $DB->get_record_sql(
+            'SELECT s.* FROM {course_sections} s JOIN {course} c ON s.course = c.id WHERE s.id = ? AND c.format = ?',
+            [$itemid, 'onetopic'], MUST_EXIST);
+        return course_get_format($section->course)->inplace_editable_update_section_name($section, $itemtype, $newvalue);
     }
 }
 

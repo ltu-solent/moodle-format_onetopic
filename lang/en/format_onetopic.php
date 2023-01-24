@@ -83,3 +83,20 @@ $string['templetetopic_single'] = 'Yes, use the summary as template';
 $string['templetetopic_list'] = 'Yes, use the summary as template, list the resources that are not referenced';
 $string['templatetopic_icons'] = 'Show icon in resource links in summary';
 $string['templatetopic_icons_help'] = 'This option defines if the icons are displayed in the summary when it is a template.';
+$string['hidden_message'] = 'The section <em>{$a}</em> is not currently available.';
+$string['privacy:metadata'] = 'The Onetopic format plugin does not store any personal data.';
+$string['hiddensectionshelp'] = 'Hidden sections are shown in collapsed form with available message';
+
+$string['tabsview'] = 'Tabs view';
+$string['tabsview_help'] = 'By default: is the traditional view.<br />
+Vertically: show tabs in vertical direction. Tabs on the left and content on the right.<br />
+One single line: all tabs are displayed in a single line with horizontal scroll. Useful if too many tabs are used.';
+$string['tabsview_default'] = 'By default';
+$string['tabsview_vertical'] = 'Vertically';
+$string['tabsview_oneline'] = 'Only one line';
+
+$string['increasesections'] = 'Add a section after the currently selected section';
+
+$string['hiddentabsbar'] = 'The tabs are set to be hidden. They will not be seen when not in edit mode.';
+$string['enablecustomstyles'] = 'Enable custom styles';
+$string['enablecustomstyles_help'] = 'Enable font color, background color and other custom tab styles in the sections configuration.';
