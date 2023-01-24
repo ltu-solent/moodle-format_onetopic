@@ -611,7 +611,9 @@ class format_onetopic extends core_courseformat\base {
      */
     public function section_format_options($foreditform = false) {
         static $sectionformatoptions = false;
-        $config = get_config('format_onetopic');
+
+        $enablecustomstyles = get_config('format_onetopic', 'enablecustomstyles');
+
         if ($sectionformatoptions === false) {
             $sectionformatoptions = [
                 'level' => [
@@ -623,20 +625,21 @@ class format_onetopic extends core_courseformat\base {
                     'type' => PARAM_TEXT
                 ]
             ];
-            if (!$config->disable_styling) {
-                $sectionformatoptions += [
-                    'fontcolor' => [
-                        'default' => '',
-                        'type' => PARAM_RAW
-                    ],
-                    'bgcolor' => [
-                        'default' => '',
-                        'type' => PARAM_RAW
-                    ],
-                    'cssstyles' => [
-                        'default' => '',
-                        'type' => PARAM_RAW
-                    ]
+
+            if ($enablecustomstyles) {
+                $sectionformatoptions['fontcolor'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW
+                ];
+
+                $sectionformatoptions['bgcolor'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW
+                ];
+
+                $sectionformatoptions['cssstyles'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW
                 ];
             }
         }
@@ -665,29 +668,30 @@ class format_onetopic extends core_courseformat\base {
                     'help_component' => 'format_onetopic',
                 ]
             ];
-            if (!$config->disable_styling) {
-                $sectionformatoptionsedit += [
-                    'fontcolor' => [
-                        'default' => '',
-                        'type' => PARAM_RAW,
-                        'label' => get_string('fontcolor', 'format_onetopic'),
-                        'help' => 'fontcolor',
-                        'help_component' => 'format_onetopic',
-                    ],
-                    'bgcolor' => [
-                        'default' => '',
-                        'type' => PARAM_RAW,
-                        'label' => get_string('bgcolor', 'format_onetopic'),
-                        'help' => 'bgcolor',
-                        'help_component' => 'format_onetopic',
-                    ],
-                    'cssstyles' => [
-                        'default' => '',
-                        'type' => PARAM_RAW,
-                        'label' => get_string('cssstyles', 'format_onetopic'),
-                        'help' => 'cssstyles',
-                        'help_component' => 'format_onetopic',
-                    ]
+
+            if ($enablecustomstyles) {
+                $sectionformatoptionsedit['fontcolor'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW,
+                    'label' => get_string('fontcolor', 'format_onetopic'),
+                    'help' => 'fontcolor',
+                    'help_component' => 'format_onetopic',
+                ];
+
+                $sectionformatoptionsedit['bgcolor'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW,
+                    'label' => get_string('bgcolor', 'format_onetopic'),
+                    'help' => 'bgcolor',
+                    'help_component' => 'format_onetopic',
+                ];
+
+                $sectionformatoptionsedit['cssstyles'] = [
+                    'default' => '',
+                    'type' => PARAM_RAW,
+                    'label' => get_string('cssstyles', 'format_onetopic'),
+                    'help' => 'cssstyles',
+                    'help_component' => 'format_onetopic',
                 ];
             }
 

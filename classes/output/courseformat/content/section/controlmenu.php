@@ -52,21 +52,15 @@ class controlmenu extends controlmenu_base {
      */
     public function section_control_items() {
         global $USER;
+
         $format = $this->format;
         $section = $this->section;
         $course = $format->get_course();
         $sectionreturn = $format->get_section_number();
-        // SU_AMEND_START: Extra vars to manage menu items.
-        $numsections = $format->get_last_section_number();
-        $usecomponents = $format->supports_components();
-        $isstealth = $section->section > $numsections;
-        $user = $USER;
-
-        $baseurl = course_get_url($course, $sectionreturn);
-        $baseurl->param('sesskey', sesskey());
-        // SU_AMEND_END.
 
         $coursecontext = context_course::instance($course->id);
+        $numsections = $format->get_last_section_number();
+        $isstealth = $section->section > $numsections;
 
         if ($sectionreturn) {
             $url = course_get_url($course, $section->section);
@@ -75,12 +69,12 @@ class controlmenu extends controlmenu_base {
         }
         $url->param('sesskey', sesskey());
 
-        $controls = [];
+        $othercontrols = [];
         if ($section->section && has_capability('moodle/course:setcurrentsection', $coursecontext)) {
             if ($course->marker == $section->section) {  // Show the "light globe" on/off.
                 $url->param('marker', 0);
                 $highlightoff = get_string('highlightoff');
-                $controls['highlight'] = [
+                $othercontrols['highlight'] = [
                     'url' => $url,
                     'icon' => 'i/marked',
                     'name' => $highlightoff,
@@ -93,7 +87,7 @@ class controlmenu extends controlmenu_base {
             } else {
                 $url->param('marker', $section->section);
                 $highlight = get_string('highlight');
-                $controls['highlight'] = [
+                $othercontrols['highlight'] = [
                     'url' => $url,
                     'icon' => 'i/marker',
                     'name' => $highlight,
@@ -105,58 +99,111 @@ class controlmenu extends controlmenu_base {
                 ];
             }
         }
-        // SU_AMEND_START: Locked sections.
-        $isdraggable = solhelper::isdraggable($course, $section);
-        // Only allow move on items that are draggable.
-        if ($section->section && $isdraggable && $usecomponents) {
+
+        $movecontrols = [];
+        if ($section->section && !$isstealth && has_capability('moodle/course:movesections', $coursecontext, $USER)) {
+            $baseurl = course_get_url($course);
+            $baseurl->param('sesskey', sesskey());
+            $horizontal = !$course->hidetabsbar && $course->tabsview != \format_onetopic::TABSVIEW_VERTICAL;
+            $rtl = right_to_left();
+
+            // Legacy move up and down links.
             $url = clone($baseurl);
-            if (!$isstealth) {
-                if (has_capability('moodle/course:movesections', $coursecontext, $user)) {
-                    // This tool will appear only when the state is ready.
-                    $url = clone ($baseurl);
-                    $url->param('movesection', $section->section);
-                    $url->param('section', $section->section);
-                    $controls['movesection'] = [
-                        'url' => $url,
-                        'icon' => 'i/dragdrop',
-                        'name' => get_string('move', 'moodle'),
-                        'pixattr' => ['class' => ''],
-                        'attr' => [
-                            'class' => 'icon move waitstate',
-                            'data-action' => 'moveSection',
-                            'data-id' => $section->id,
-                        ],
-                    ];
-                }
+            if ($section->section > 1) { // Add a arrow to move section up.
+                $url->param('section', $section->section);
+                $url->param('move', -1);
+                $strmoveup = $horizontal ? get_string('moveleft') : get_string('moveup');
+                $movecontrols['moveup'] = [
+                    'url' => $url,
+                    'icon' => $horizontal ? ($rtl ? 't/right' : 't/left') : 'i/up',
+                    'name' => $strmoveup,
+                    'pixattr' => ['class' => ''],
+                    'attr' => ['class' => 'icon' . ($horizontal ? '' : ' moveup')],
+                ];
+            }
+
+            $url = clone($baseurl);
+            if ($section->section < $numsections) { // Add a arrow to move section down.
+                $url->param('section', $section->section);
+                $url->param('move', 1);
+                $strmovedown = $horizontal ? get_string('moveright') : get_string('movedown');
+                $movecontrols['movedown'] = [
+                    'url' => $url,
+                    'icon' => $horizontal ? ($rtl ? 't/left' : 't/right') : 'i/down',
+                    'name' => $strmovedown,
+                    'pixattr' => ['class' => ''],
+                    'attr' => ['class' => 'icon' . ($horizontal ? '' : ' movedown')],
+                ];
             }
         }
-        // SU_AMEND_END.
+
+        // Duplicate current section option.
+        if ($section->section && has_capability('moodle/course:manageactivities', $coursecontext)) {
+            $urlduplicate = new \moodle_url('/course/format/onetopic/duplicate.php',
+                            ['courseid' => $course->id, 'section' => $section->section, 'sesskey' => sesskey()]);
+
+            $othercontrols['duplicate'] = [
+                'url' => $urlduplicate,
+                'icon' => 'i/reload',
+                'name' => get_string('duplicate', 'format_onetopic'),
+                'pixattr' => ['class' => ''],
+                'attr' => [
+                    'class' => 'editing_duplicate'
+                ],
+            ];
+        }
 
         $parentcontrols = parent::section_control_items();
 
-        // If the edit key exists, we are going to insert our controls after it.
-        if (array_key_exists("edit", $parentcontrols)) {
-            $merged = [];
-            // We can't use splice because we are using associative arrays.
-            // Step through the array and merge the arrays.
-            foreach ($parentcontrols as $key => $action) {
-                $merged[$key] = $action;
-                if ($key == "edit") {
-                    // If we have come to the edit key, merge these controls here.
-                    $merged = array_merge($merged, $controls);
-                }
-            }
-            // SU_AMEND_START: Prevent hiding or deleting non-draggable sections.
-            if (!solhelper::isdraggable($course, $section)) {
-                unset($merged['visiblity']); // Yes this is a typo.
-                unset($merged['visibility']); // Just in case they correct the typo.
-                unset($merged['delete']);
-            }
-            // SU_AMEND_END.
-
-            return $merged;
-        } else {
-            return array_merge($controls, $parentcontrols);
+        // ToDo: reload the page is a temporal solution. We need control the delete tab action with JS.
+        if (array_key_exists("delete", $parentcontrols)) {
+            $url = new \moodle_url('/course/editsection.php', [
+                'id' => $section->id,
+                'sr' => $section->section - 1,
+                'delete' => 1,
+                'sesskey' => sesskey()]);
+            $parentcontrols['delete']['url'] = $url;
+            unset($parentcontrols['delete']['attr']['data-action']);
         }
+
+        // If the edit key exists, we are going to insert our controls after it.
+        $merged = [];
+        $editcontrolexists = array_key_exists("edit", $parentcontrols);
+        $visibilitycontrolexists = array_key_exists("visibility", $parentcontrols);
+
+        if (!$editcontrolexists) {
+            $merged = array_merge($merged, $othercontrols);
+
+            if (!$visibilitycontrolexists) {
+                $merged = array_merge($merged, $movecontrols);
+            }
+        }
+
+        // We can't use splice because we are using associative arrays.
+        // Step through the array and merge the arrays.
+        foreach ($parentcontrols as $key => $action) {
+            $merged[$key] = $action;
+            if ($key == "edit") {
+                // If we have come to the edit key, merge these controls here.
+                $merged = array_merge($merged, $othercontrols);
+            }
+
+            if (($key == "edit" && !$visibilitycontrolexists) || $key == "visibility") {
+                $merged = array_merge($merged, $movecontrols);
+            }
+        }
+
+        // SU_AMEND_START: Prevent hiding, deleting or moving non-draggable sections.
+        if (!solhelper::isdraggable($course, $section)) {
+            unset($merged['visiblity']); // Yes this is a typo.
+            unset($merged['visibility']); // Just in case they correct the typo.
+            unset($merged['delete']);
+            unset($merged['moveup']);
+            unset($merged['movedown']);
+            unset($merged['movesection']);
+        }
+        // SU_AMEND_END.
+
+        return $merged;
     }
 }

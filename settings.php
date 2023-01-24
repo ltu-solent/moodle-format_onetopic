@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Settings for onetopic format
+ * Settings for format.
  *
- * @package   format_onetopic
- * @author    Mark Sharp <mark.sharp@solent.ac.uk>
- * @copyright 2022 Solent University {@link https://www.solent.ac.uk}
+ * @package format_onetopic
+ * @copyright 2023 David Herney Bernal - cirano. https://bambuco.co
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,13 +26,10 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
 
-    $settings->add(new admin_setting_configcheckbox(
-        'format_onetopic/disable_styling',
-        new lang_string('disable_styling', 'format_onetopic'),
-        new lang_string('disable_styling_desc', 'format_onetopic'),
-        0
-    ));
-
+    $settings->add(new admin_setting_configcheckbox('format_onetopic/enablecustomstyles',
+                                                    get_string('enablecustomstyles', 'format_onetopic'),
+                                                    get_string('enablecustomstyles_help', 'format_onetopic'), 1));
+    // SU_AMEND_START: Settings to control locked sections.
     $settings->add(
         new admin_setting_heading(
             'format_onetopic/locksectionsheading',
@@ -61,4 +57,5 @@ if ($ADMIN->fulltree) {
             PARAM_RAW
         )
     );
+    // SU_AMEND_END.
 }

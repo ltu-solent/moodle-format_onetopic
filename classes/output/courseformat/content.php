@@ -109,7 +109,8 @@ class content extends content_base {
             'secondrow' => $secondtabslist,
             'tabsviewclass' => $tabsview,
             'hasformatmsgs' => count(\format_onetopic::$formatmsgs) > 0,
-            'formatmsgs' => \format_onetopic::$formatmsgs
+            'formatmsgs' => \format_onetopic::$formatmsgs,
+            'hidetabsbar' => ($course->hidetabsbar == 1 && $format->show_editor())
         ];
 
         // The current section format has extra navigation.
@@ -218,7 +219,7 @@ class content extends content_base {
         $sections = $modinfo->get_section_info_all();
         $numsections = count($sections);
         $displaysection = $this->format->get_section_number();
-        $onetopicconfig = get_config('format_onetopic');
+        $enablecustomstyles = get_config('format_onetopic', 'enablecustomstyles');
 
         // Can we view the section in question?
         $context = \context_course::instance($course->id);
@@ -261,7 +262,7 @@ class content extends content_base {
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
-                    if (!$onetopicconfig->disable_styling) {
+                    if ($enablecustomstyles) {
                         if (!empty($formatoptions['fontcolor'])) {
                             $customstyles .= 'color: ' . $formatoptions['fontcolor'] . '; ';
                         }
@@ -275,7 +276,7 @@ class content extends content_base {
                         }
                     }
 
-                    if (isset($formatoptions['level'])) {
+                    if (isset($formatoptions['level']) && $section > $firstsection) {
                         $level = $formatoptions['level'];
                     }
                 }
