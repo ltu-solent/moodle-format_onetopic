@@ -27,14 +27,18 @@ namespace format_onetopic;
 
 use core_course_category;
 
+/**
+ * Extra Solent specific functions.
+ */
 class solhelper {
     /**
      * Solent restricts which sections are moveable. This depends on the user, course category idnumber, and the section number.
      *
+     * @param stdClass $course Course object
+     * @param stdClass $section Section object
      * @return bool True/False draggable or not.
      */
     public static function isdraggable($course, $section): bool {
-        global $DB;
         $config = get_config('format_onetopic');
         if ($config->locksections === 0) {
             if ($section->section == 0) {

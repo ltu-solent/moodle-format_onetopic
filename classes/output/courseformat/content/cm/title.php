@@ -17,7 +17,7 @@
 /**
  * Inplace editable
  *
- * @package   theme_solent
+ * @package   format_onetopic
  * @author    Mark Sharp <mark.sharp@solent.ac.uk>
  * @copyright 2022 Solent University {@link https://www.solent.ac.uk}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,7 +31,10 @@ use core_courseformat\base as course_format;
 use lang_string;
 use section_info;
 
-class title extends \core_courseformat\output\local\content\cm\title  {
+/**
+ * Override cm title class
+ */
+class title extends \core_courseformat\output\local\content\cm\title {
 
     /**
      * Constructor.

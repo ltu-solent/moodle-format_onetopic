@@ -29,6 +29,9 @@ use core_courseformat\output\local\state\section as StateSection;
 use format_onetopic\solhelper;
 use stdClass;
 
+/**
+ * Override state section class
+ */
 class section extends StateSection {
     /**
      * Export this data so it can be used as state object in the course editor.
