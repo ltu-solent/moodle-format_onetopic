@@ -253,12 +253,12 @@ class content extends content_base {
                 $formatoptions = course_get_format($course)->get_format_options($thissection);
 
                 $sectionname = get_section_name($course, $thissection);
-                // SU_AMEND_START: Add hidden from students label to tab title property.
                 $title = $sectionname;
-                if (!$thissection->visible) {
+
+                if (!$thissection->visible || !$thissection->available) {
                     $title .= ': '. get_string('hiddenfromstudents');
                 }
-                // SU_AMEND_END.
+
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
@@ -313,10 +313,8 @@ class content extends content_base {
                     }
                 }
 
-                // SU_AMEND_START: Add hidden from students label to tab title property.
                 $newtab = new \format_onetopic\singletab($section, $sectionname, $url, $title,
                                         $availablemessage, $customstyles, $specialclass);
-                // SU_AMEND_END.
                 $newtab->active = !$inactivetab;
 
                 if ($displaysection == $section) {
