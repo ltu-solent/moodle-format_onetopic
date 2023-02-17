@@ -53,11 +53,12 @@ class controlmenu extends \core_courseformat\output\local\content\cm\controlmenu
      */
     protected function cm_control_items() {
         $controlactions = parent::cm_control_items();
-        // SU_AMEND_START: Hide dangerous actions for formative assignments.
-        $mod = $this->mod;
-        if ($mod->modname == 'assign' && $mod->idnumber != '') {
-            unset($controlactions['delete']);
-            unset($controlactions['hide']);
+        // SU_AMEND_START: Hide dangerous actions for summative assignments.
+        if (method_exists('\local_solsits\helper', 'is_summative_assignment')) {
+            if (\local_solsits\helper::is_summative_assignment($this->mod->id)) {
+                unset($controlactions['delete']);
+                unset($controlactions['hide']);
+            }
         }
         // SU_AMEND_END.
         return $controlactions;
