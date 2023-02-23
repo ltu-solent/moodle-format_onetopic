@@ -33,7 +33,7 @@ require_once($CFG->libdir . '/completionlib.php');
 /**
  * Contains the ajax update course module structure.
  *
- * @package   core_course
+ * @package   format_onetopic
  * @copyright 2021 Ferran Recio <ferran@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

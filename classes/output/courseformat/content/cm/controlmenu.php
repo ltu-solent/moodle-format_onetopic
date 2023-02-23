@@ -17,7 +17,7 @@
 /**
  * Contains the default activity control menu.
  *
- * @package   core_courseformat
+ * @package   format_onetopic
  * @copyright 2020 Ferran Recio <ferran@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -37,7 +37,7 @@ use stdClass;
 /**
  * Base class to render a course module menu inside a course format.
  *
- * @package   core_courseformat
+ * @package   format_onetopic
  * @copyright 2020 Ferran Recio <ferran@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
