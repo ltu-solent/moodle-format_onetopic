@@ -390,7 +390,9 @@ class content extends content_base {
                 $straddsection = get_string('increasesections', 'format_onetopic');
                 $icon = $output->pix_icon('t/switch_plus', s($straddsection));
                 $insertposition = $displaysection + 1;
-
+                // SU_AMEND_START: Prevent inserting tab in current position.
+                $insertposition = 0;
+                // SU_AMEND_END.
                 $paramstotabs = array('courseid' => $course->id,
                                     'increase' => true,
                                     'sesskey' => sesskey(),
