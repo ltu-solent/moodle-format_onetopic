@@ -26,6 +26,7 @@
 namespace format_onetopic;
 
 use core_course_category;
+use Exception;
 
 /**
  * Extra Solent specific functions.
@@ -69,5 +70,20 @@ class solhelper {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Given a coursemodule id, returns if this is a summative assignment.
+     *
+     * @param int $cmid Course module id
+     * @return boolean
+     */
+    public static function is_summative_assignment($cmid) {
+        try {
+            [$course, $cm] = get_course_and_cm_from_cmid($cmid, 'assign');
+            return ($cm->idnumber != '');
+        } catch (Exception $ex) {
+            return false;
+        }
     }
 }

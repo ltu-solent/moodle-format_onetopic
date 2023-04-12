@@ -386,12 +386,11 @@ class content extends content_base {
 
             // Only can add sections if it does not exceed the maximum amount.
             if (count($sections) < $maxsections) {
-
-                $straddsection = get_string('increasesections', 'format_onetopic');
-                $icon = $output->pix_icon('t/switch_plus', s($straddsection));
-                $insertposition = $displaysection + 1;
                 // SU_AMEND_START: Prevent inserting tab in current position.
-                $insertposition = 0;
+                $allowmidtab = get_config('format_onetopic', 'allowmidtab');
+                $straddsection = $allowmidtab ? get_string('increasesections', 'format_onetopic') : get_string('increasesectionsend', 'format_onetopic');
+                $icon = $output->pix_icon('t/switch_plus', s($straddsection));
+                $insertposition = $allowmidtab ? $displaysection + 1 : 0;
                 // SU_AMEND_END.
                 $paramstotabs = array('courseid' => $course->id,
                                     'increase' => true,

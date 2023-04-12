@@ -54,11 +54,9 @@ class controlmenu extends \core_courseformat\output\local\content\cm\controlmenu
     protected function cm_control_items() {
         $controlactions = parent::cm_control_items();
         // SU_AMEND_START: Hide dangerous actions for summative assignments.
-        if (method_exists('\local_solsits\helper', 'is_summative_assignment')) {
-            if (\local_solsits\helper::is_summative_assignment($this->mod->id) && !is_siteadmin()) {
-                unset($controlactions['delete']);
-                unset($controlactions['hide']);
-            }
+        if (\format_onetopic\solhelper::is_summative_assignment($this->mod->id) && !is_siteadmin()) {
+            unset($controlactions['delete']);
+            unset($controlactions['hide']);
         }
         // SU_AMEND_END.
         return $controlactions;

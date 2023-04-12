@@ -31,9 +31,9 @@ if ($ADMIN->fulltree) {
 
     $settings->add(
         new admin_setting_heading(
-            'format_onetopic/locksectionsheading',
-            new lang_string('locksectionsheading', 'format_onetopic'),
-            new lang_string('locksectionsheading_desc', 'format_onetopic')
+            'format_onetopic/sectionmanagement',
+            new lang_string('sectionmanagementheading', 'format_onetopic'),
+            new lang_string('sectionmanagementheading_desc', 'format_onetopic')
         )
     );
 
@@ -54,6 +54,15 @@ if ($ADMIN->fulltree) {
             new lang_string('locksectioncategory_desc', 'format_onetopic'),
             'modules_',
             PARAM_RAW
+        )
+    );
+
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'format_onetopic/allowmidtab',
+            new lang_string('allowmidtab', 'format_onetopic'),
+            new lang_string('allowmidtab_desc', 'format_onetopic'),
+            1
         )
     );
 }
