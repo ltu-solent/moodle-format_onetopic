@@ -54,7 +54,9 @@ class cm extends StateCm {
         $cm = $this->cm;
         $course = $format->get_course();
         $name = external_format_string($cm->name, $cm->context, true);
+        // SU_AMEND_START: Remove Font-Awesome from display in course index. Also affects backup.
         $name = preg_replace('/\[fa-[a-z0-9\-]+\]/i', '', $name);
+        // SU_AMEND_END.
         if (empty($name)) {
             $name = get_string_manager()->string_exists('pluginname', $cm->modname)
                 ? get_string('pluginname', $cm->modname)
