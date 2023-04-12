@@ -62,7 +62,6 @@ class solhelper {
             $lockedcategory = (preg_match('#' . $config->locksectioncategory . '#', $coursecat->idnumber) === 1);
         }
         if (!$lockedcategory) {
-            // mtrace("Not locked {$course->id} - Section: {$this->section->section}");
             return true;
         }
 

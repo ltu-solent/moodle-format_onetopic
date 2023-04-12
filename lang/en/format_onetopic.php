@@ -101,6 +101,7 @@ $string['hiddentabsbar'] = 'The tabs are set to be hidden. They will not be seen
 $string['enablecustomstyles'] = 'Enable custom styles';
 $string['enablecustomstyles_help'] = 'Enable font color, background color and other custom tab styles in the sections configuration.';
 
+// SU_AMEND_START: Strings for locked section settings.
 $string['locksectioncategory'] = 'Lock section category';
 $string['locksectioncategory_desc'] = 'Pattern of category idnumber to apply drag\'n\'drop restrictions on';
 $string['locksections'] = 'Lock sections';
@@ -110,3 +111,4 @@ $string['sectionmanagementheading_desc'] = 'Settings to manage section behaviour
 $string['allowmidtab'] = 'Allow Mid-tab insertion';
 $string['allowmidtab_desc'] = 'Allow tab insertion in current tab position';
 $string['increasesectionsend'] = 'Add a section at the end';
+// SU_AMEND_END.

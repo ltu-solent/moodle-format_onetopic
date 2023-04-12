@@ -227,7 +227,7 @@ class controlmenu extends controlmenu_base {
             }
         }
 
-        // SU_AMEND_START: Prevent hiding or deleting non-draggable sections.
+        // SU_AMEND_START: Prevent hiding, deleting or moving non-draggable sections.
         if (!solhelper::isdraggable($course, $section)) {
             unset($merged['visiblity']); // Yes this is a typo.
             unset($merged['visibility']); // Just in case they correct the typo.
