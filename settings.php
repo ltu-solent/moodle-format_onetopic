@@ -29,21 +29,12 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('format_onetopic/enablecustomstyles',
                                                     get_string('enablecustomstyles', 'format_onetopic'),
                                                     get_string('enablecustomstyles_help', 'format_onetopic'), 1));
-<<<<<<< HEAD
 
     $settings->add(
         new admin_setting_heading(
             'format_onetopic/sectionmanagement',
             new lang_string('sectionmanagementheading', 'format_onetopic'),
             new lang_string('sectionmanagementheading_desc', 'format_onetopic')
-=======
-    // SU_AMEND_START: Settings to control locked sections.
-    $settings->add(
-        new admin_setting_heading(
-            'format_onetopic/locksectionsheading',
-            new lang_string('locksectionsheading', 'format_onetopic'),
-            new lang_string('locksectionsheading_desc', 'format_onetopic')
->>>>>>> c1d68e5ae81b8eeba3d6b4d8937ab58ab43f239d
         )
     );
 
@@ -66,7 +57,6 @@ if ($ADMIN->fulltree) {
             PARAM_RAW
         )
     );
-<<<<<<< HEAD
 
     $settings->add(
         new admin_setting_configcheckbox(
@@ -76,7 +66,4 @@ if ($ADMIN->fulltree) {
             1
         )
     );
-=======
-    // SU_AMEND_END.
->>>>>>> c1d68e5ae81b8eeba3d6b4d8937ab58ab43f239d
 }
