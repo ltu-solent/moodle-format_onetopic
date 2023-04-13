@@ -42,5 +42,3 @@ Feature: Summative assignments cannot be deleted or have its name changed
     Then I should see "Edit settings" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
     And I should see "Delete" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
     And I should see "Hide" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
-
-

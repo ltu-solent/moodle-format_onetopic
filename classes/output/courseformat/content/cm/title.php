@@ -61,9 +61,7 @@ class title extends \core_courseformat\output\local\content\cm\title {
         $this->displayoptions = $this->load_display_options($displayoptions);
         // SU_AMEND_START: Formative assignments do not allow inline editing of the title.
         $formative = false;
-        if (method_exists('\local_solsits\helper', 'is_summative_assignment')) {
-            $formative = \local_solsits\helper::is_summative_assignment($mod->id);
-        }
+        $formative = \format_onetopic\solhelper::is_summative_assignment($mod->id);
         if ($editable === null) {
             $editable = $format->show_editor() && has_capability(
                 'moodle/course:manageactivities',

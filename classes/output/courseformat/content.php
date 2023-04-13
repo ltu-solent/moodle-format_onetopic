@@ -388,7 +388,9 @@ class content extends content_base {
             if (count($sections) < $maxsections) {
                 // SU_AMEND_START: Prevent inserting tab in current position.
                 $allowmidtab = get_config('format_onetopic', 'allowmidtab');
-                $straddsection = $allowmidtab ? get_string('increasesections', 'format_onetopic') : get_string('increasesectionsend', 'format_onetopic');
+                $straddsection = $allowmidtab
+                    ? get_string('increasesections', 'format_onetopic')
+                    : get_string('increasesectionsend', 'format_onetopic');
                 $icon = $output->pix_icon('t/switch_plus', s($straddsection));
                 $insertposition = $allowmidtab ? $displaysection + 1 : 0;
                 // SU_AMEND_END.
