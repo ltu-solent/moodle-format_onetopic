@@ -57,6 +57,7 @@ class controlmenu extends \core_courseformat\output\local\content\cm\controlmenu
         if (\format_onetopic\solhelper::is_summative_assignment($this->mod->id) && !is_siteadmin()) {
             unset($controlactions['delete']);
             unset($controlactions['hide']);
+            unset($controlactions['duplicate']);
         }
         // SU_AMEND_END.
         return $controlactions;

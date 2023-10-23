@@ -235,6 +235,8 @@ class controlmenu extends controlmenu_base {
             unset($merged['moveup']);
             unset($merged['movedown']);
             unset($merged['movesection']);
+            unset($merged['duplicate']);
+            unset($merged['move']);
         }
         // SU_AMEND_END.
         return $merged;
