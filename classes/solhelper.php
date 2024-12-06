@@ -55,6 +55,9 @@ class solhelper {
             return true;
         }
         $coursecat = core_course_category::get($course->category, IGNORE_MISSING);
+        if (is_null($coursecat->idnumber)) {
+            return true;
+        }
         $lockedcategory = false;
         if ($config->locksectioncategory == '') {
             $lockedcategory = true;
