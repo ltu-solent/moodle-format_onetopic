@@ -56,6 +56,33 @@ class format_onetopic extends core_courseformat\base {
     /** @var int One line view */
     const TABSVIEW_ONELINE = 2;
 
+    /** @var int Embedded course index */
+    const TABSVIEW_COURSEINDEX = 3;
+
+    /** @var int Only if theme not support "usescourseindex" */
+    const SECTIONSNAVIGATION_SUPPORT = 1;
+
+    /** @var int Not use */
+    const SECTIONSNAVIGATION_NOT = 2;
+
+    /** @var int Only at the bottom */
+    const SECTIONSNAVIGATION_BOTTOM = 3;
+
+    /** @var int Only at the bottom */
+    const SECTIONSNAVIGATION_BOTH = 4;
+
+    /** @var int Like slides */
+    const SECTIONSNAVIGATION_SLIDES = 5;
+
+    /** @var string Course index scope */
+    const SCOPE_COURSE = 'course';
+
+    /** @var string Course modules scope */
+    const SCOPE_MOD = 'mod';
+
+    /** @var string Scorm modules scope */
+    const SCOPE_SCORM = 'scorm';
+
     /** @var bool If the class was previously instanced, in one execution cycle */
     private static $loaded = false;
 
@@ -67,6 +94,18 @@ class format_onetopic extends core_courseformat\base {
 
     /** @var array Modules used in template */
     public $tplcmsused = [];
+
+    /** @var bool If the course has topic tabs */
+    public $hastopictabs = false;
+
+    /** @var string Unique id for the course format */
+    public $uniqid;
+
+    /** @var bool If print the tabs menu in the current scope */
+    public $printable = true;
+
+    /** @var string Current format scope */
+    public $currentscope = null;
 
     /**
      * Creates a new instance of class
@@ -80,81 +119,125 @@ class format_onetopic extends core_courseformat\base {
     protected function __construct($format, $courseid) {
         parent::__construct($format, $courseid);
 
+        $this->uniqid = uniqid();
+
         // Hack for section number, when not is like a param in the url or section is not available.
         global $section, $sectionid, $PAGE, $USER, $urlparams, $DB, $context;
 
-        $course = $this->get_course();
+        $inpopup = optional_param('inpopup', 0, PARAM_INT);
 
-        if (!self::$loaded && isset($section) && $courseid &&
-                ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')) {
-            self::$loaded = true;
+        if ($inpopup) {
+            $this->printable = false;
+        } else {
 
-            if ($sectionid <= 0) {
-                $section = optional_param('section', -1, PARAM_INT);
-            }
+            $defaultscope = get_config('format_onetopic', 'defaultscope');
 
-            $numsections = (int)$DB->get_field('course_sections', 'MAX(section)', ['course' => $courseid], MUST_EXIST);
-
-            if ($section >= 0 && $numsections >= $section) {
-                $realsection = $section;
+            if ($defaultscope) {
+                $scope = explode(',', $defaultscope);
             } else {
-                if (isset($USER->display[$course->id]) && $numsections >= $USER->display[$course->id]) {
-                    $realsection = $USER->display[$course->id];
-                } else if ($course->marker && $course->marker > 0) {
-                    $realsection = (int)$course->marker;
-                } else {
-                    $realsection = 0;
-                }
+                $scope = [];
             }
 
-            if ($realsection < 0 || $realsection > $numsections) {
-                $realsection = 0;
-            }
+            $pagesavailable = ['course-view-onetopic', 'course-view', 'lib-ajax-service'];
 
-            // Onetopic format is always multipage.
-            $realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay : false;
+            if (!in_array($PAGE->pagetype, $pagesavailable)) {
 
-            if ($realcoursedisplay == COURSE_DISPLAY_MULTIPAGE && $realsection === 0 && $numsections >= 1) {
-                $realsection = 1;
-            }
+                if (in_array(self::SCOPE_MOD, $scope)) {
+                    $this->currentscope = self::SCOPE_MOD;
+                    $patternavailable = '/^mod-.*-view$/';
+                    $this->printable = preg_match($patternavailable, $PAGE->pagetype);
 
-            // Can view the hidden sections in current course?
-            $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
-
-            $modinfo = get_fast_modinfo($course);
-            $sections = $modinfo->get_section_info_all();
-
-            // Check if the display section is available.
-            if ((!$canviewhidden && (!$sections[$realsection]->uservisible || !$sections[$realsection]->available))) {
-
-                self::$formatmsgs[] = get_string('hidden_message', 'format_onetopic', $this->get_section_name($realsection));
-
-                $valid = false;
-                $k = $realcoursedisplay ? 1 : 0;
-
-                do {
-                    $formatoptions = $this->get_format_options($k);
-                    if ($formatoptions['level'] == 0
-                            && ($sections[$k]->available && $sections[$k]->uservisible)
-                            || $canviewhidden) {
-                        $valid = true;
-                        break;
+                    if (!$this->printable) {
+                        if (in_array(self::SCOPE_SCORM, $scope) && $PAGE->pagetype == 'mod-scorm-player') {
+                            $this->printable = true;
+                        }
                     }
 
-                    $k++;
-
-                } while (!$valid && $k <= $numsections);
-
-                $realsection = $valid ? $k : 0;
+                } else {
+                    $this->printable = false;
+                }
+            } else {
+                $this->currentscope = self::SCOPE_COURSE;
             }
-
-            $section = $realsection;
-            $USER->display[$course->id] = $realsection;
-            $urlparams['section'] = $realsection;
-            $PAGE->set_url('/course/view.php', $urlparams);
-
         }
 
+        if ($this->printable) {
+            if (!self::$loaded && isset($section) && $courseid &&
+                    ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')) {
+                self::$loaded = true;
+
+                $this->singlesection = $section;
+
+                $course = $this->get_course();
+
+                // Onetopic format is always multipage.
+                $course->realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay : false;
+
+                if ($sectionid <= 0) {
+                    $section = optional_param('section', -1, PARAM_INT);
+                }
+
+                $numsections = (int)$DB->get_field('course_sections', 'MAX(section)', ['course' => $courseid], MUST_EXIST);
+
+                if ($section >= 0 && $numsections >= $section) {
+                    $realsection = $section;
+                } else {
+                    if (isset($USER->display[$course->id]) && $numsections >= $USER->display[$course->id]) {
+                        $realsection = $USER->display[$course->id];
+                    } else if ($course->marker && $course->marker > 0) {
+                        $realsection = (int)$course->marker;
+                    } else {
+                        $realsection = 0;
+                    }
+                }
+
+                if ($realsection < 0 || $realsection > $numsections) {
+                    $realsection = 0;
+                }
+
+                if ($course->realcoursedisplay == COURSE_DISPLAY_MULTIPAGE && $realsection === 0 && $numsections >= 1) {
+                    $realsection = null;
+                }
+
+                $modinfo = get_fast_modinfo($course);
+                $sections = $modinfo->get_section_info_all();
+
+                // Check if the display section is available.
+                if ($realsection === null || !$sections[$realsection]->uservisible) {
+
+                    if ($realsection) {
+                        self::$formatmsgs[] = get_string('hidden_message',
+                                                            'format_onetopic',
+                                                            $this->get_section_name($realsection));
+                    }
+
+                    $valid = false;
+                    $k = $course->realcoursedisplay ? 1 : 0;
+
+                    do {
+                        $formatoptions = $this->get_format_options($k);
+                        if ($formatoptions['level'] == 0 && $sections[$k]->uservisible) {
+                            $valid = true;
+                            break;
+                        }
+
+                        $k++;
+
+                    } while (!$valid && $k <= $numsections);
+
+                    $realsection = $valid ? $k : 0;
+                }
+
+                $realsection = $realsection ?? 0;
+                // The $section var is a global var, we need to set it to the real section.
+                $section = $realsection;
+                $this->set_sectionnum($section);
+                $USER->display[$course->id] = $realsection;
+                $urlparams['section'] = $realsection;
+                $PAGE->set_url('/course/view.php', $urlparams);
+
+            }
+        }
     }
 
     /**
@@ -172,7 +255,23 @@ class format_onetopic extends core_courseformat\base {
      * @return bool
      */
     public function uses_course_index() {
-        return true;
+
+        $course = $this->get_course();
+
+        if ($course->tabsview == self::TABSVIEW_COURSEINDEX) {
+            return false;
+        }
+
+        if ($this->show_editor()) {
+            return true;
+        }
+
+        // The 2 value is Use the site configuration.
+        if (isset($course->usescourseindex) && $course->usescourseindex < 2) {
+            return $course->usescourseindex;
+        }
+
+        return get_config('format_onetopic', 'courseindex') == 1;
     }
 
     /**
@@ -181,7 +280,7 @@ class format_onetopic extends core_courseformat\base {
      * @return bool if the course format uses indentation.
      */
     public function uses_indentation(): bool {
-        return false;
+        return true;
     }
 
     /**
@@ -200,6 +299,17 @@ class format_onetopic extends core_courseformat\base {
         } else {
             return $this->get_default_section_name($section);
         }
+    }
+
+    /**
+     * Get the current section number to display.
+     * Some formats has the hability to swith from one section to multiple sections per page.
+     *
+     * @since Moodle 4.4
+     * @return int|null the current section number or null when there is no single section.
+     */
+    public function get_sectionnum(): ?int {
+        return $this->singlesection == null ? 0 : $this->singlesection;
     }
 
     /**
@@ -224,12 +334,25 @@ class format_onetopic extends core_courseformat\base {
     }
 
     /**
+     * Get if the current format instance will show multiple sections or an individual one.
+     *
+     * Some formats has the hability to swith from one section to multiple sections per page,
+     * output components will use this method to know if the current display is a single or
+     * multiple sections.
+     *
+     * @return int|null null for all sections or the sectionid.
+     */
+    public function get_sectionid(): ?int {
+        return null;
+    }
+
+    /**
      * Generate the title for this section page.
      *
      * @return string the page title
      */
     public function page_title(): string {
-        return get_string('topicoutline');
+        return get_string('sectionoutline');
     }
 
     /**
@@ -407,28 +530,36 @@ class format_onetopic extends core_courseformat\base {
             $courseformatoptions = [
                 'hiddensections' => [
                     'default' => $courseconfig->hiddensections,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'hidetabsbar' => [
                     'default' => 0,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'coursedisplay' => [
                     'default' => $courseconfig->coursedisplay,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'templatetopic' => [
                     'default' => self::TEMPLATETOPIC_NOT,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'templatetopic_icons' => [
                     'default' => 0,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'tabsview' => [
                     'default' => 0,
-                    'type' => PARAM_INT
-                ]
+                    'type' => PARAM_INT,
+                ],
+                'usessectionsnavigation' => [
+                    'default' => 0,
+                    'type' => PARAM_INT,
+                ],
+                'usescourseindex' => [
+                    'default' => 2,
+                    'type' => PARAM_INT,
+                ],
             ];
         }
 
@@ -443,8 +574,8 @@ class format_onetopic extends core_courseformat\base {
                         [
                             0 => new lang_string('hiddensectionscollapsed'),
                             1 => new lang_string('hiddensectionsinvisible'),
-                            2 => new lang_string('hiddensectionshelp', 'format_onetopic')
-                        ]
+                            2 => new lang_string('hiddensectionshelp', 'format_onetopic'),
+                        ],
                     ],
                 ],
                 'hidetabsbar' => [
@@ -455,8 +586,8 @@ class format_onetopic extends core_courseformat\base {
                     'element_attributes' => [
                         [
                             0 => new lang_string('no'),
-                            1 => new lang_string('yes')
-                        ]
+                            1 => new lang_string('yes'),
+                        ],
                     ],
                 ],
                 'coursedisplay' => [
@@ -465,8 +596,8 @@ class format_onetopic extends core_courseformat\base {
                     'element_attributes' => [
                         [
                             COURSE_DISPLAY_SINGLEPAGE => new lang_string('coursedisplay_single', 'format_onetopic'),
-                            COURSE_DISPLAY_MULTIPAGE => new lang_string('coursedisplay_multi', 'format_onetopic')
-                        ]
+                            COURSE_DISPLAY_MULTIPAGE => new lang_string('coursedisplay_multi', 'format_onetopic'),
+                        ],
                     ],
                     'help' => 'coursedisplay',
                     'help_component' => 'format_onetopic',
@@ -478,8 +609,8 @@ class format_onetopic extends core_courseformat\base {
                         [
                             self::TEMPLATETOPIC_NOT => new lang_string('templetetopic_not', 'format_onetopic'),
                             self::TEMPLATETOPIC_SINGLE => new lang_string('templetetopic_single', 'format_onetopic'),
-                            self::TEMPLATETOPIC_LIST => new lang_string('templetetopic_list', 'format_onetopic')
-                        ]
+                            self::TEMPLATETOPIC_LIST => new lang_string('templetetopic_list', 'format_onetopic'),
+                        ],
                     ],
                     'help' => 'templatetopic',
                     'help_component' => 'format_onetopic',
@@ -492,8 +623,8 @@ class format_onetopic extends core_courseformat\base {
                     'element_attributes' => [
                         [
                             0 => new lang_string('no'),
-                            1 => new lang_string('yes')
-                        ]
+                            1 => new lang_string('yes'),
+                        ],
                     ],
                 ],
                 'tabsview' => [
@@ -503,12 +634,42 @@ class format_onetopic extends core_courseformat\base {
                         [
                             self::TABSVIEW_DEFAULT => new lang_string('tabsview_default', 'format_onetopic'),
                             self::TABSVIEW_VERTICAL => new lang_string('tabsview_vertical', 'format_onetopic'),
-                            self::TABSVIEW_ONELINE => new lang_string('tabsview_oneline', 'format_onetopic')
-                        ]
+                            self::TABSVIEW_ONELINE => new lang_string('tabsview_oneline', 'format_onetopic'),
+                            self::TABSVIEW_COURSEINDEX => new lang_string('tabsview_courseindex', 'format_onetopic'),
+                        ],
                     ],
                     'help' => 'tabsview',
                     'help_component' => 'format_onetopic',
-                ]
+                ],
+                'usessectionsnavigation' => [
+                    'label' => new lang_string('usessectionsnavigation', 'format_onetopic'),
+                    'element_type' => 'select',
+                    'element_attributes' => [
+                        [
+                            '0' => new lang_string('sectionsnavigation_sitelevel', 'format_onetopic'),
+                            self::SECTIONSNAVIGATION_SUPPORT => new lang_string('sectionsnavigation_support', 'format_onetopic'),
+                            self::SECTIONSNAVIGATION_NOT => new lang_string('sectionsnavigation_not', 'format_onetopic'),
+                            self::SECTIONSNAVIGATION_BOTTOM => new lang_string('sectionsnavigation_bottom', 'format_onetopic'),
+                            self::SECTIONSNAVIGATION_BOTH => new lang_string('sectionsnavigation_both', 'format_onetopic'),
+                            self::SECTIONSNAVIGATION_SLIDES => new lang_string('sectionsnavigation_slides', 'format_onetopic'),
+                        ],
+                    ],
+                    'help' => 'usessectionsnavigation',
+                    'help_component' => 'format_onetopic',
+                ],
+                'usescourseindex' => [
+                    'label' => get_string('usescourseindex', 'format_onetopic'),
+                    'help' => 'usescourseindex',
+                    'help_component' => 'format_onetopic',
+                    'element_type' => 'select',
+                    'element_attributes' => [
+                        [
+                            2 => new lang_string('usecourseindexsite', 'format_onetopic'),
+                            0 => new lang_string('no'),
+                            1 => new lang_string('yes'),
+                        ],
+                    ],
+                ],
             ];
             $courseformatoptions = array_merge_recursive($courseformatoptions, $courseformatoptionsedit);
         }
@@ -563,6 +724,7 @@ class format_onetopic extends core_courseformat\base {
         if ($oldcourse !== null) {
             $oldcourse = (array)$oldcourse;
             $options = $this->course_format_options();
+
             foreach ($options as $key => $unused) {
                 if (!array_key_exists($key, $data)) {
                     if (array_key_exists($key, $oldcourse)) {
@@ -577,6 +739,10 @@ class format_onetopic extends core_courseformat\base {
                         $data['templatetopic_icons'] = 0;
                     } else if ($key === 'tabsview') {
                         $data['tabsview'] = self::TABSVIEW_DEFAULT;
+                    } else if ($key === 'usessectionsnavigation') {
+                        $data['usessectionsnavigation'] = 0;
+                    } else if ($key === 'usescourseindex') {
+                        $data['usescourseindex'] = 2;
                     }
                 }
             }
@@ -618,28 +784,28 @@ class format_onetopic extends core_courseformat\base {
             $sectionformatoptions = [
                 'level' => [
                     'default' => 0,
-                    'type' => PARAM_INT
+                    'type' => PARAM_INT,
                 ],
                 'firsttabtext' => [
                     'default' => get_string('index', 'format_onetopic'),
-                    'type' => PARAM_TEXT
-                ]
+                    'type' => PARAM_TEXT,
+                ],
             ];
 
             if ($enablecustomstyles) {
                 $sectionformatoptions['fontcolor'] = [
                     'default' => '',
-                    'type' => PARAM_RAW
+                    'type' => PARAM_RAW,
                 ];
 
                 $sectionformatoptions['bgcolor'] = [
                     'default' => '',
-                    'type' => PARAM_RAW
+                    'type' => PARAM_RAW,
                 ];
 
                 $sectionformatoptions['cssstyles'] = [
                     'default' => '',
-                    'type' => PARAM_RAW
+                    'type' => PARAM_RAW,
                 ];
             }
         }
@@ -654,8 +820,8 @@ class format_onetopic extends core_courseformat\base {
                     'element_attributes' => [
                         [
                             0 => get_string('asprincipal', 'format_onetopic'),
-                            1 => get_string('aschild', 'format_onetopic')
-                        ]
+                            1 => get_string('aschild', 'format_onetopic'),
+                        ],
                         ],
                     'help' => 'level',
                     'help_component' => 'format_onetopic',
@@ -666,7 +832,7 @@ class format_onetopic extends core_courseformat\base {
                     'label' => get_string('firsttabtext', 'format_onetopic'),
                     'help' => 'firsttabtext',
                     'help_component' => 'format_onetopic',
-                ]
+                ],
             ];
 
             if ($enablecustomstyles) {
@@ -714,6 +880,47 @@ class format_onetopic extends core_courseformat\base {
     }
 
     /**
+     * Allows course format to execute code on moodle_page::set_cm()
+     *
+     * Current module can be accessed as $page->cm (returns instance of cm_info)
+     *
+     * @param moodle_page $page instance of page calling set_cm
+     */
+    public function page_set_cm(moodle_page $page) {
+        $this->set_sectionnum($page->cm->sectionnum);
+    }
+
+    /**
+     * Course-specific information to be output immediately above content on any course page
+     *
+     * See {@see core_courseformat\base::course_header()} for usage
+     *
+     * @return null|renderable null for no output or object with data for plugin renderer
+     */
+    public function course_content_header() {
+        if ($this->printable) {
+            return new \format_onetopic\header($this);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Course-specific information to be output immediately below content on any course page
+     *
+     * See course_format::course_header() for usage
+     *
+     * @return null|renderable null for no output or object with data for plugin renderer
+     */
+    public function course_content_footer() {
+        if ($this->printable) {
+            return new \format_onetopic\footer($this);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Prepares the templateable object to display section name.
      *
      * @param \section_info|\stdClass $section
@@ -726,11 +933,11 @@ class format_onetopic extends core_courseformat\base {
     public function inplace_editable_render_section_name($section, $linkifneeded = true,
             $editable = null, $edithint = null, $editlabel = null) {
         if (empty($edithint)) {
-            $edithint = new lang_string('editsectionname', 'format_topics');
+            $edithint = new lang_string('editsectionname');
         }
         if (empty($editlabel)) {
             $title = get_section_name($section->course, $section);
-            $editlabel = new lang_string('newsectionname', 'format_topics', $title);
+            $editlabel = new lang_string('newsectionname', 'core', $title);
         }
         return parent::inplace_editable_render_section_name($section, $linkifneeded, $editable, $edithint, $editlabel);
     }
@@ -818,7 +1025,7 @@ class format_onetopic extends core_courseformat\base {
         }
 
         $course = $this->get_course();
-        $realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay : false;
+        $realcoursedisplay = property_exists($course, 'realcoursedisplay') ? $course->realcoursedisplay : false;
         $firstsection = ($realcoursedisplay == COURSE_DISPLAY_MULTIPAGE) ? 1 : 0;
         $sections = $this->get_sections();
         $parentsections = [];
@@ -863,6 +1070,24 @@ class format_onetopic extends core_courseformat\base {
             }
         }
     }
+
+    /**
+     * return true if the course editor must be displayed.
+     *
+     * @param array|null $capabilities array of capabilities a user needs to have to see edit controls in general.
+     *  If null or not specified, the user needs to have 'moodle/course:manageactivities'.
+     * @return bool true if edit controls must be displayed
+     */
+    public function show_editor(?array $capabilities = ['moodle/course:manageactivities']): bool {
+        global $PAGE;
+
+        if ($this->currentscope != self::SCOPE_COURSE) {
+            return false;
+        }
+
+        return parent::show_editor($capabilities);
+    }
+
 }
 
 /**
@@ -881,73 +1106,5 @@ function format_onetopics_inplace_editable($itemtype, $itemid, $newvalue) {
             'SELECT s.* FROM {course_sections} s JOIN {course} c ON s.course = c.id WHERE s.id = ? AND c.format = ?',
             [$itemid, 'onetopic'], MUST_EXIST);
         return course_get_format($section->course)->inplace_editable_update_section_name($section, $itemtype, $newvalue);
-    }
-}
-
-/**
- * Class used in order to replace tags into text. It is a part of templates functionality.
- *
- * Called by preg_replace_callback in renderer.php.
- *
- * @since 2.0
- * @package format_onetopic
- * @copyright 2012 David Herney Bernal - cirano
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class format_onetopic_replace_regularexpression {
-    /** @var string Text to search */
-    public $_string_search;
-
-    /** @var string Text to replace */
-    public $_string_replace;
-
-    /** @var string Temporal key */
-    public $_tag_string = '{label_tag_replace}';
-
-    /**
-     * Replace a tag into a text.
-     *
-     * @param array $match
-     * @return array
-     */
-    public function replace_tag_in_expresion ($match) {
-
-        $term = $match[0];
-        $term = str_replace("[[", '', $term);
-        $term = str_replace("]]", '', $term);
-
-        $text = strip_tags($term);
-
-        if (strpos($text, ':') > -1) {
-
-            $pattern = '/([^:])+:/i';
-            $text = preg_replace($pattern, '', $text);
-
-            // Change text for alternative text.
-            $newreplace = str_replace($this->_string_search, $text, $this->_string_replace);
-
-            // Posible html tags position.
-            $pattern = '/([>][^<]*:[^<]*[<])+/i';
-            $term = preg_replace($pattern, '><:><', $term);
-
-            $pattern = '/([>][^<]*:[^<]*$)+/i';
-            $term = preg_replace($pattern, '><:>', $term);
-
-            $pattern = '/(^[^<]*:[^<]*[<])+/i';
-            $term = preg_replace($pattern, '<:><', $term);
-
-            $pattern = '/(^[^<]*:[^<]*$)/i';
-            $term = preg_replace($pattern, '<:>', $term);
-
-            $pattern = '/([>][^<^:]*[<])+/i';
-            $term = preg_replace($pattern, '><', $term);
-
-            $term = str_replace('<:>', $newreplace, $term);
-        } else {
-            // Change tag for resource or mod name.
-            $newreplace = str_replace($this->_tag_string, $this->_string_search, $this->_string_replace);
-            $term = str_replace($this->_string_search, $newreplace, $term);
-        }
-        return $term;
     }
 }

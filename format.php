@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
-// Horrible backwards compatible parameter aliasing..
+// Horrible backwards compatible parameter aliasing.
 if ($topic = optional_param('topic', 0, PARAM_INT)) {
     $url = $PAGE->url;
     $url->param('section', $topic);
@@ -49,19 +49,14 @@ if (($marker >= 0) && has_capability('moodle/course:setcurrentsection', $context
 }
 
 // Onetopic format is always multipage.
-$course->realcoursedisplay = property_exists($course, 'coursedisplay') ? $course->coursedisplay == COURSE_DISPLAY_MULTIPAGE : false;
 $course->coursedisplay = COURSE_DISPLAY_MULTIPAGE;
 
 $renderer = $PAGE->get_renderer('format_onetopic');
 
-$section = $displaysection;
-
-$renderer->numsections = course_get_format($course)->get_last_section_number();
-
 $disableajax = optional_param('onetopic_da', -1, PARAM_INT);
 
 if (!isset($USER->onetopic_da)) {
-    $USER->onetopic_da = array();
+    $USER->onetopic_da = [];
 }
 
 if ($disableajax !== -1) {
@@ -72,24 +67,10 @@ if ($disableajax !== -1) {
     }
 }
 
-if (!empty($displaysection)) {
-    $format->set_section_number($displaysection);
+if (!is_null($displaysection)) {
+    $format->set_sectionnum($displaysection);
 }
 
 $outputclass = $format->get_output_classname('content');
 $widget = new $outputclass($format);
 echo $renderer->render($widget);
-
-// Include course format js module.
-$PAGE->requires->js('/course/format/topics/format.js');
-$PAGE->requires->js('/course/format/onetopic/format.js');
-$PAGE->requires->yui_module('moodle-core-notification-dialogue', 'M.course.format.dialogueinit');
-
-$params = array(
-    'formattype' => $course->tabsview,
-    'icons' => [
-        'left' => $OUTPUT->pix_icon('t/collapsed_rtl', ''),
-        'right' => $OUTPUT->pix_icon('t/collapsed', ''),
-    ]
-);
-$PAGE->requires->js_call_amd('format_onetopic/main', 'init', $params);

@@ -19,6 +19,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import * as OneLine from 'format_onetopic/oneline';
+import $ from 'jquery';
+import ModalFactory from 'core/modal_factory';
+import {get_string as getString} from 'core/str';
 
 /**
  * Component initialization.
@@ -32,4 +35,45 @@ export const init = (formattype, icons) => {
     if (formattype == 2) {
         OneLine.load(icons);
     }
+
+    var infotitle = getString('aboutresource', 'format_onetopic');
+
+    $('.format-onetopic .onetopic .iconwithhelp[data-helpwindow]').each(function() {
+        var $node = $(this);
+        $node.on('click', function(e) {
+            e.preventDefault();
+            var $content = $('#hw-' + $node.data('helpwindow'));
+
+            if ($content.data('modal')) {
+                $content.data('modal').show();
+                return;
+            }
+
+            var title = $content.data('title');
+
+            if (!title) {
+                title = infotitle;
+            }
+
+            // Show the content in a modal window.
+            ModalFactory.create({
+                'title': title,
+                'body': '',
+            }).done(function(modal) {
+
+                var contenthtml = $content.html();
+
+                // Uncomment html in contenthtml. The comment is used in order to load content with tags not inline.
+                contenthtml = contenthtml.replace(/<!--([\s\S]*?)-->/g, function(match, p1) {
+                    return p1;
+                });
+
+                var $modalBody = modal.getBody();
+                $modalBody.css('min-height', '150px');
+                $modalBody.append(contenthtml);
+                modal.show();
+                $content.data('modal', modal);
+            });
+        });
+    });
 };

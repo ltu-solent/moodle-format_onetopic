@@ -41,7 +41,7 @@ class tabs {
      *
      */
     public function __construct() {
-        $this->tabslist = array();
+        $this->tabslist = [];
     }
 
     /**
@@ -69,18 +69,20 @@ class tabs {
      * @param bool $assubtabs It's a subtabs list.
      * @return array of object.
      */
-    public function get_list(bool $assubtabs = false) : array {
+    public function get_list(bool $assubtabs = false): array {
 
         $tabstree = [];
 
+        $anchortotabstree = get_config('format_onetopic', 'anchortotabstree');
+
         foreach ($this->tabslist as $tab) {
 
-            if ($assubtabs) {
+            if ($assubtabs && strpos($tab->specialclass, ' subtopic ') === false) {
                 $tab->specialclass .= ' subtopic ';
             }
 
             $newtab = new \stdClass();
-            $newtab->link = $tab->link . '#tabs-tree-start';
+            $newtab->link = $tab->link . ($anchortotabstree ? '#tabs-tree-start' : '');
             $newtab->title = $tab->title;
             $newtab->text = $tab->content;
             $newtab->active = $tab->selected;
@@ -124,7 +126,7 @@ class tabs {
      *
      * @return object With list of tabs in a tabs attribute.
      */
-    public function get_secondlist() : object {
+    public function get_secondlist(): object {
 
         $tabstree = new \stdClass();
         $tabstree->tabs = [];

@@ -15,50 +15,12 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template format_onetopic/local/tabtree
+    @template format_onetopic/local/content
 
     Displays the complete course format.
 
     Example context (json):
     {
-        "initialsection": {
-            "num": 0,
-            "id": 34,
-            "cmlist": {
-                "cms": [
-                    {
-                        "cmitem": {
-                            "cmformat": {
-                                "cmname": "<a class=\"aalink\" href=\"#\"><span class=\"instancename\">Forum example</span></a>",
-                                "hasname": "true"
-                            },
-                            "id": 3,
-                            "anchor": "module-3",
-                            "module": "forum",
-                            "extraclasses": "newmessages"
-                        }
-                    }
-                ],
-                "hascms": true
-            },
-            "iscurrent": true,
-            "summary": {
-                "summarytext": "Summary text!"
-            }
-        },
-        "format": "onetopic",
-        "title": "Course title example",
-            "hasnavigation": true,
-            "sectionnavigation": {
-            "hasprevious": true,
-            "previousurl": "#",
-            "larrow": "&#x25C4;",
-            "previousname": "Section 3",
-            "hasnext": true,
-            "rarrow": "&#x25BA;",
-            "nexturl": "#",
-            "nextname": "Section 5"
-        },
         "sectionselector": {
             "hasprevious": true,
             "previousurl": "#",
@@ -70,7 +32,6 @@
             "nextname": "Section 5",
             "selector": "<select><option>Section 4</option></select>"
         },
-        "sectionreturn": 1,
         "singlesection": {
             "num": 1,
             "id": 35,
@@ -86,6 +47,7 @@
                                 "cmname": "<a class=\"aalink\" href=\"#\"><span class=\"instancename\">Assign example</span></a>",
                                 "hasname": "true"
                             },
+                            "cmid": 4,
                             "id": 4,
                             "anchor": "module-4",
                             "module": "assign",
@@ -102,76 +64,30 @@
         }
     }
 }}
-<div id="{{uniqid}}-course-format">
-    <h2 class="accesshide">{{{title}}}</h2>
-    {{{completionhelp}}}
 
-    {{#hasformatmsgs}}
-        {{#formatmsgs}}
-            {{>core/notification_info}}
-        {{/formatmsgs}}
-    {{/hasformatmsgs}}
+<div class="single-section {{sectionclasses}}">
+    {{availability}}
+    {{#sectionnavigation}}
+        {{$ core_courseformat/local/content/sectionnavigation }}
+            {{> core_courseformat/local/content/sectionnavigation }}
+        {{/ core_courseformat/local/content/sectionnavigation }}
+    {{/sectionnavigation}}
+    <ul class="{{format}}">
+    {{#singlesection}}
+        {{$ format_onetopic/local/content/section }}
+            {{> format_onetopic/local/content/section }}
+        {{/ format_onetopic/local/content/section }}
+    {{/singlesection}}
+    </ul>
+    {{#sectionselector}}
+        {{$ core_courseformat/local/content/sectionselector }}
+            {{> core_courseformat/local/content/sectionselector }}
+        {{/ core_courseformat/local/content/sectionselector }}
+    {{/sectionselector}}
+    {{#bulkedittools}}
+        {{$ core_courseformat/local/content/bulkedittools}}
+            {{> core_courseformat/local/content/bulkedittools}}
+        {{/ core_courseformat/local/content/bulkedittools}}
+    {{/bulkedittools}}
 
-    {{#initialsection}}
-    <div class="single-section general-section">
-        <ul class="{{format}}">
-            {{$ format_onetopic/local/content/section }}
-                {{> format_onetopic/local/content/section }}
-            {{/ format_onetopic/local/content/section }}
-        </ul>
-    </div>
-    {{/initialsection}}
-
-    <div id="tabs-tree-start" class="{{tabsviewclass}} {{#hastopictabs}}hastopictabs{{/hastopictabs}} {{#hassecondrow}}hassecondrow{{/hassecondrow}}">
-        {{#hastopictabs}}
-            <div class="tabs-wrapper">
-                {{>format_onetopic/courseformat/tabtree}}
-            </div>
-
-            <div class="onetopic-tab-body">
-
-            {{#hassecondrow}}
-                {{#secondrow}}
-                    {{>format_onetopic/courseformat/tabtree}}
-                {{/secondrow}}
-            {{/hassecondrow}}
-
-        {{/hastopictabs}}
-
-        <div class="single-section">
-        {{availability}}
-            {{#sectionnavigation}}
-                {{$ core_courseformat/local/content/sectionnavigation }}
-                    {{> core_courseformat/local/content/sectionnavigation }}
-                {{/ core_courseformat/local/content/sectionnavigation }}
-            {{/sectionnavigation}}
-            <ul class="{{format}}">
-            {{#singlesection}}
-                {{$ format_onetopic/local/content/section }}
-                    {{> format_onetopic/local/content/section }}
-                {{/ format_onetopic/local/content/section }}
-            {{/singlesection}}
-            </ul>
-            {{#sectionselector}}
-                {{$ core_courseformat/local/content/sectionselector }}
-                    {{> core_courseformat/local/content/sectionselector }}
-                {{/ core_courseformat/local/content/sectionselector }}
-            {{/sectionselector}}
-        </div>
-        {{#hastopictabs}}
-            {{! End of onetopic-tab-body box. }}
-            </div>
-        {{/hastopictabs}}
-    </div>
-
-    {{#numsections}}
-        {{$ core_courseformat/local/content/addsection}}
-            {{> core_courseformat/local/content/addsection}}
-        {{/ core_courseformat/local/content/addsection}}
-    {{/numsections}}
 </div>
-{{#js}}
-require(['core_courseformat/local/content'], function(component) {
-    component.init('{{uniqid}}-course-format', {}, {{sectionreturn}});
-});
-{{/js}}

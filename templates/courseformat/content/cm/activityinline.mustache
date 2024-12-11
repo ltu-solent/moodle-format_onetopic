@@ -56,33 +56,24 @@
         "modstealth": true
     }
 }}
-<div class="activity-basis">
-    {{^hasname}}
-        {{$ core_courseformat/local/content/cm/badges }}
-            {{> core_courseformat/local/content/cm/badges }}
-        {{/ core_courseformat/local/content/cm/badges }}
-    {{/hasname}}
+<span class="activity-basis">
     {{#cmname}}
         {{$ format_onetopic/courseformat/content/cm/cmnameinline }}
             {{> format_onetopic/courseformat/content/cm/cmnameinline }}
         {{/ format_onetopic/courseformat/content/cm/cmnameinline }}
     {{/cmname}}
     {{#afterlink}}
-        <div class="afterlink">
+        <span class="afterlink">
             {{{afterlink}}}
-        </div>
+        </span>
     {{/afterlink}}
 
-    {{#activityinfo}}
-        {{#hascompletion}}
-        <div class="activity-info mt-1 mt-md-0">
-            {{> core_courseformat/local/content/cm/activity_info}}
-        </div>
-        {{/hascompletion}}
-    {{/activityinfo}}
-</div>
-{{#hasname}}
-    {{$ core_courseformat/local/content/cm/badges }}
-        {{> core_courseformat/local/content/cm/badges }}
-    {{/ core_courseformat/local/content/cm/badges }}
-{{/hasname}}
+    {{#showinlinehelp}}
+        {{! Only show the icon if there is a name to display. }}
+        {{#hasname}}
+            <span class="iconwithhelp" data-helpwindow="{{uniqueid}}">
+                {{#pix}} e/help, core, {{#str}} info {{/str}} {{/pix}}
+            </span>
+        {{/hasname}}
+    {{/showinlinehelp}}
+</span>

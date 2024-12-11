@@ -14,30 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace format_onetopic\local\hooks\output;
+
 /**
- * Privacy Subsystem implementation for format_onetopic.
+ * Hook callbacks for format_onetopic
  *
  * @package    format_onetopic
- * @copyright 2019 David Herney Bernal - cirano
+ * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class before_http_headers {
 
-namespace format_onetopic\privacy;
-
-/**
- * Privacy Subsystem for format_onetopic implementing null_provider.
- *
- * @copyright 2019 David Herney Bernal - cirano
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class provider implements \core_privacy\local\metadata\null_provider {
     /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
+     * Moodle native lib/navigationlib.php calls this hook allowing us to override UI.
      *
-     * @return  string
+     * @param \core\hook\output\before_http_headers $hook
      */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+    public static function callback(\core\hook\output\before_http_headers $hook): void {
+        $renderer = $hook->renderer;
+
+        global $PAGE;
+        $PAGE->requires->css('/course/format/onetopic/styles.php');
     }
 }

@@ -14,30 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace format_onetopic\courseformat;
+
+use format_topics\courseformat\stateactions as stateactions_format_topics;
+
 /**
- * Privacy Subsystem implementation for format_onetopic.
+ * Contains the core course state actions specific to topics format.
  *
  * @package    format_onetopic
- * @copyright 2019 David Herney Bernal - cirano
+ * @copyright  2024 David Herney - cirano. https://bambuco.co
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class stateactions extends stateactions_format_topics {
 
-namespace format_onetopic\privacy;
-
-/**
- * Privacy Subsystem for format_onetopic implementing null_provider.
- *
- * @copyright 2019 David Herney Bernal - cirano
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class provider implements \core_privacy\local\metadata\null_provider {
-    /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
-     */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
-    }
 }

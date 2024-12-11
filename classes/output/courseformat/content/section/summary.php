@@ -25,12 +25,10 @@
 namespace format_onetopic\output\courseformat\content\section;
 
 use context_course;
-use core\output\named_templatable;
 use core_courseformat\base as course_format;
 use core_courseformat\output\local\courseformat_named_templatable;
 use core_courseformat\output\local\content\cm as cm_base;
 use core_courseformat\output\local\content\section\summary as summary_base;
-use renderable;
 use section_info;
 use stdClass;
 
@@ -51,7 +49,7 @@ class summary extends summary_base {
     /** @var section_info the course section class */
     private $section;
 
-    /** @var renderer_base the renderer output class */
+    /** @var \renderer_base the renderer output class */
     private $output;
 
     /** @var string Text to search */
@@ -78,7 +76,7 @@ class summary extends summary_base {
      * Export this data so it can be used as the context for a mustache template.
      *
      * @param renderer_base $output typically, the renderer that's calling this function
-     * @return array data context for a mustache template
+     * @return stdClass data context for a mustache template
      */
     public function export_for_template(\renderer_base $output): stdClass {
 
@@ -103,11 +101,12 @@ class summary extends summary_base {
         $course = $this->format->get_course();
         $context = context_course::instance($section->course);
 
+        $summarytext = $section->summary;
         if ($course->templatetopic != \format_onetopic::TEMPLATETOPIC_NOT) {
-            $section->summary = $this->replace_resources($section);
+            $summarytext = $this->replace_resources($section);
         }
 
-        $summarytext = file_rewrite_pluginfile_urls($section->summary, 'pluginfile.php',
+        $summarytext = file_rewrite_pluginfile_urls($summarytext, 'pluginfile.php',
             $context->id, 'course', 'section', $section->id);
 
         $options = new stdClass();
@@ -139,7 +138,7 @@ class summary extends summary_base {
         $completioninfo = new \completion_info($course);
 
         if (!isset($initialised)) {
-            $groupbuttons     = ($course->groupmode || (!$course->groupmodeforce));
+            $groupbuttons = ($course->groupmode || (!$course->groupmodeforce));
             $groupbuttonslink = (!$course->groupmodeforce);
             include_once($CFG->dirroot . '/mod/forum/lib.php');
             if ($usetracking = forum_tp_can_track_forums()) {
@@ -155,9 +154,6 @@ class summary extends summary_base {
         $modinfo = $this->format->get_modinfo();
 
         $summary = $section->summary;
-
-        $htmlresource = '';
-        $htmlmore     = '';
 
         if (!empty($section->sequence)) {
             $sectionmods = explode(",", $section->sequence);
@@ -184,23 +180,34 @@ class summary extends summary_base {
                 // Display the link to the module (or do nothing if module has no url).
                 $cmdata = $cm->export_for_template($this->output);
                 $cmdata->modinline = true;
-                $cmdata->hideicons = $course->templatetopic_icons == 0;
+                $cmdata->hideicons = !$course->templatetopic_icons;
+                $cmdata->uniqueid = 'cm_' . $mod->id . '_' . time() . '_' . rand(0, 1000);
+                $cmdata->singlename = $instancename;
+
+                $cmdata->hascompletion = isset($cmdata->completion) && $cmdata->completion;
+
+                $hasavailability = isset($cmdata->modavailability) ? $cmdata->modavailability->hasmodavailability : false;
+
+                $cmdata->showinlinehelp = false;
+                if ($cmdata->hascompletion
+                        || (isset($cmdata->hasdates) && $cmdata->hasdates)
+                        || $hasavailability) {
+                    $cmdata->showinlinehelp = true;
+                }
 
                 $url = $mod->url;
-                if (!empty($url)) {
-                    // If there is content but NO link (eg label), then display the
-                    // content here (BEFORE any icons). In this case cons must be
-                    // displayed after the content so that it makes more sense visually
-                    // and for accessibility reasons, e.g. if you have a one-line label
-                    // it should work similarly (at least in terms of ordering) to an
-                    // activity.
-                    $renderer = $this->format->get_renderer($PAGE);
-                    $htmlresource = $renderer->render_from_template('format_onetopic/courseformat/content/cminline', $cmdata);
+                if (empty($url)) {
+                    // If there is content but NO link (like label), then don't display it.
+                    continue;
                 }
+
+                $template = 'format_onetopic/courseformat/content/cminline';
 
                 if ($completioninfo->is_enabled($mod) !== COMPLETION_TRACKING_NONE) {
                     $completion = $DB->get_record('course_modules_completion',
-                                                array('coursemoduleid' => $mod->id, 'userid' => $USER->id, 'completionstate' => 1));
+                                                ['coursemoduleid' => $mod->id, 'userid' => $USER->id, 'completionstate' => 1]);
+
+                    $template = 'format_onetopic/courseformat/content/cminlinecompletion';
 
                     $showcompletionconditions = $course->showcompletionconditions == COMPLETION_SHOW_CONDITIONS;
 
@@ -214,41 +221,27 @@ class summary extends summary_base {
                         $completedclass .= ' hascompletionconditions';
                     }
 
-                    $htmlresource = '<completion class="completiontag ' . $completedclass . '">' . $htmlresource;
+                    $cmdata->completedclass = $completedclass;
+                    $cmdata->showcompletionconditions = $showcompletionconditions;
 
-                    if ($showcompletionconditions) {
-
-                        // Fetch activity dates.
-                        $activitydates = [];
-                        if ($course->showactivitydates) {
-                            $activitydates = \core\activity_dates::get_dates_for_module($mod, $USER->id);
-                        }
-
-                        // Fetch completion details.
-                        $completiondetails = \core_completion\cm_completion_details::get_instance($mod,
-                                                                                                    $USER->id,
-                                                                                                    $showcompletionconditions);
-
-                        $completionhtml = $this->output->activity_information($mod, $completiondetails, $activitydates);
-
-                        $htmlresource .= '<span class="showcompletionconditions">';
-                        $htmlresource .= $this->output->image_icon('i/info', '');
-                        $htmlresource .= $completionhtml;
-                        $htmlresource .= '</span>';
-                    }
-
-                    $htmlresource .= '</completion>';
                 }
+
+                $renderer = $this->format->get_renderer($PAGE);
+                $htmlresource = $renderer->render_from_template($template, $cmdata);
 
                 // Replace the link in pattern: [[resource name]].
                 $this->tplstringreplace = $htmlresource;
                 $this->tplstringsearch = $instancename;
 
                 $newsummary = preg_replace_callback("/(\[\[)(([<][^>]*>)*)((" . preg_quote($this->tplstringsearch, '/') .
-                    ")(:?))([^\]]*)\]\]/i", array($this, "replace_tag_in_expresion"), $summary);
+                    ")(:?))([^\]]*)\]\]/i", [$this, "replace_tag_in_expresion"], $summary);
 
                 if ($newsummary != $summary) {
                     $this->format->tplcmsused[] = $modnumber;
+                }
+
+                if ($cmdata->showinlinehelp) {
+                    $newsummary .= $renderer->render_from_template('format_onetopic/courseformat/content/cm/cmhelpinfo', $cmdata);
                 }
 
                 $summary = $newsummary;
@@ -256,7 +249,7 @@ class summary extends summary_base {
             }
         }
 
-        return $summary . $htmlmore;
+        return $summary;
 
     }
 
@@ -266,7 +259,7 @@ class summary extends summary_base {
      * @param array $match
      * @return array
      */
-    public function replace_tag_in_expresion ($match) {
+    public function replace_tag_in_expresion($match) {
 
         $term = $match[0];
         $term = str_replace("[[", '', $term);

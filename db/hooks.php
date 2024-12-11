@@ -15,29 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Privacy Subsystem implementation for format_onetopic.
+ * Hook callbacks for Onetopic format
  *
  * @package    format_onetopic
- * @copyright 2019 David Herney Bernal - cirano
+ * @copyright  2024 2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace format_onetopic\privacy;
+defined('MOODLE_INTERNAL') || die();
 
-/**
- * Privacy Subsystem for format_onetopic implementing null_provider.
- *
- * @copyright 2019 David Herney Bernal - cirano
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class provider implements \core_privacy\local\metadata\null_provider {
-    /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
-     */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
-    }
-}
+$callbacks = [
+
+    [
+        'hook' => core\hook\output\before_http_headers::class,
+        'callback' => 'format_onetopic\local\hooks\output\before_http_headers::callback',
+        'priority' => 0,
+    ],
+];
