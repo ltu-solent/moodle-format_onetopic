@@ -75,4 +75,33 @@ if ($ADMIN->fulltree) {
     $setting = new \format_onetopic\tabstyles($name, $title, $description, '');
     $settings->add($setting);
 
+    // SSU_AMEND_START: Solent specific settings.
+    $name = 'format_onetopic/sectionmanagement';
+    $heading = new lang_string('sectionmanagementheading', 'format_onetopic');
+    $description = new lang_string('sectionmanagementheading_desc', 'format_onetopic');
+    $setting = new admin_setting_heading($name, $heading, $description);
+    $settings->add($setting);
+
+    $name = 'format_onetopic/locksections';
+    $label = new lang_string('locksections', 'format_onetopic');
+    $description = new lang_string('locksections_desc', 'format_onetopic');
+    $default = 0;
+    $setting = new admin_setting_configtext($name, $label, $description, $default, PARAM_INT);
+    $settings->add($setting);
+
+    $name = 'format_onetopic/locksectioncategory';
+    $label = new lang_string('locksectioncategory', 'format_onetopic');
+    $description = new lang_string('locksectioncategory_desc', 'format_onetopic');
+    $default = 'modules_';
+    $setting = new admin_setting_configtext($name, $label, $description, $default);
+    $settings->add($setting);
+
+    $name = 'format_onetopic/allowmidtab';
+    $label = new lang_string('allowmidtab', 'format_onetopic');
+    $description = new lang_string('allowmidtab_desc', 'format_onetopic');
+    $default = 1;
+    $setting = new admin_setting_configcheckbox($name, $label, $description, $default);
+    $settings->add($setting);
+    // SSU_AMEND_END.
+
 }

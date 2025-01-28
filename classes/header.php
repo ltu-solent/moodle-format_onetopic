@@ -340,9 +340,18 @@ class header implements \renderable, \templatable {
             // Only can add sections if it does not exceed the maximum amount.
             if (count($sections) < $maxsections) {
 
-                $straddsection = get_string('increasesections', 'format_onetopic');
+                // SU_AMEND_START: Prevent inserting tab in current position.
+                $config = get_config('format_onetopic');
+                $allowmidtab = 1;
+                if (isset($config->allowmidtab)) {
+                    $allowmidtab = $config->allowmidtab;
+                }
+                $straddsection = $allowmidtab
+                    ? get_string('increasesections', 'format_onetopic')
+                    : get_string('increasesectionsend', 'format_onetopic');
                 $icon = $output->pix_icon('t/switch_plus', s($straddsection));
-                $insertposition = $displaysection + 1;
+                $insertposition = $allowmidtab ? $displaysection + 1 : 0;
+                // SU_AMEND_END.
 
                 $paramstotabs = [
                                     'courseid' => $course->id,

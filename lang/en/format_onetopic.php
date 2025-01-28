@@ -24,6 +24,8 @@
  */
 
 $string['aboutresource'] = 'About the resource';
+$string['allowmidtab'] = 'Allow Mid-tab insertion';
+$string['allowmidtab_desc'] = 'Allow tab insertion in current tab position';
 $string['asbrother'] = 'Same level that the previous tab';
 $string['aschild'] = 'Child of previous tab';
 $string['asprincipal'] = 'Normal, as a first level tab';
@@ -102,10 +104,15 @@ $string['hidefromothers'] = 'Hide topic';
 $string['hidetabsbar'] = 'Hide tabs bar';
 $string['hidetabsbar_help'] = 'Hide tabs bar in the course page. The navigation is with the sections navbar.';
 $string['increasesections'] = 'Add a section after the currently selected section';
+$string['increasesectionsend'] = 'Add a section at the end';
 $string['index'] = 'Index';
 $string['invalidjsonstyles'] = 'Styles configuration is not valid, fails with: {$a}';
 $string['level'] = 'Level';
 $string['level_help'] = 'Change the tab level.';
+$string['locksectioncategory'] = 'Lock section category';
+$string['locksectioncategory_desc'] = 'Pattern of category idnumber to apply drag\'n\'drop restrictions on';
+$string['locksections'] = 'Lock sections';
+$string['locksections_desc'] = 'Lock all sections up to this section number';
 $string['movesectionto'] = 'Move current topic';
 $string['movesectionto_help'] = 'Move current topic to left/right of selected topic';
 $string['page-course-view-topics'] = 'Any course main page in onetopic format';
@@ -118,6 +125,8 @@ $string['progress_full'] = 'Duplicating topic';
 $string['rebuild_course_cache'] = 'Rebuild course cache';
 $string['scope_mod'] = 'Modules';
 $string['scope_scorm'] = 'SCORM Player';
+$string['sectionmanagementheading'] = 'Section management';
+$string['sectionmanagementheading_desc'] = 'Settings to manage section behaviour';
 $string['sectionname'] = 'Topic';
 $string['sectionsnavigation_both'] = 'At top and bottom section';
 $string['sectionsnavigation_bottom'] = 'Only at the bottom';

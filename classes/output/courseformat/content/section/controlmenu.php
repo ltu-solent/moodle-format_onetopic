@@ -25,6 +25,7 @@
 namespace format_onetopic\output\courseformat\content\section;
 
 use context_course;
+use format_onetopic\solhelper;
 use format_topics\output\courseformat\content\section\controlmenu as controlmenu_format_topics;
 
 /**
@@ -148,7 +149,20 @@ class controlmenu extends controlmenu_format_topics {
                 $merged = array_merge($merged, $movecontrols);
             }
         }
-
+        // SU_AMEND_START: Prevent hiding, deleting or moving non-draggable sections.
+        if (!solhelper::isdraggable($course, $section)) {
+            unset($merged['visiblity']); // Yes this is a typo.
+            unset($merged['visibility']); // Just in case they correct the typo.
+            unset($merged['delete']);
+            unset($merged['moveup']);
+            unset($merged['movedown']);
+            unset($merged['movesection']);
+            unset($merged['duplicate']);
+            unset($merged['move']);
+        }
+        // $keys = array_keys($merged);
+        //     print_r($keys);
+        // SU_AMEND_END.
         return $merged;
     }
 }
