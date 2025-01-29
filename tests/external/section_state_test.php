@@ -30,7 +30,7 @@ global $CFG;
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 use core_courseformat\external\get_state;
-use external_api;
+use core_external\external_api;
 use externallib_advanced_testcase;
 
 /**
@@ -38,7 +38,7 @@ use externallib_advanced_testcase;
  *
  * @covers \format_onetopic\output\courseformat\state\section
  */
-class section_state_test extends externallib_advanced_testcase {
+final class section_state_test extends externallib_advanced_testcase {
     /**
      * Store list of sections
      *
@@ -57,6 +57,7 @@ class section_state_test extends externallib_advanced_testcase {
      * @return void
      */
     public function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest();
         $this->sections = [];
         $this->activities = [];
@@ -68,6 +69,7 @@ class section_state_test extends externallib_advanced_testcase {
     public function tearDown(): void {
         unset($this->sections);
         unset($this->activities);
+        parent::tearDown();
     }
 
     /**
@@ -76,7 +78,6 @@ class section_state_test extends externallib_advanced_testcase {
     public static function setupBeforeClass(): void { // phpcs:ignore
         global $CFG;
         require_once($CFG->dirroot . '/course/lib.php');
-        require_once($CFG->libdir . '/externallib.php');
     }
 
     /**
@@ -86,15 +87,15 @@ class section_state_test extends externallib_advanced_testcase {
      * @param string $catname
      * @return void
      */
-    public function test_get_state($catname) {
+    public function test_get_state($catname): void {
         $this->resetAfterTest();
         $category = $this->getDataGenerator()->create_category([
-            'idnumber' => $catname
+            'idnumber' => $catname,
         ]);
         $course = $this->getDataGenerator()->create_course([
             'numsections' => 10,
             'format' => 'onetopic',
-            'category' => $category->id
+            'category' => $category->id,
         ]);
         $user = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user(
@@ -137,15 +138,15 @@ class section_state_test extends externallib_advanced_testcase {
      *
      * @return array List of tests.
      */
-    public function get_state_provider() {
+    public static function get_state_provider(): array {
         return [
             'Restricted category' => [
-                'catname' => 'modules_FAB'
+                'catname' => 'modules_FAB',
 
             ],
             'Free for all category' => [
-                'catname' => 'mycat'
-            ]
+                'catname' => 'mycat',
+            ],
         ];
     }
 }

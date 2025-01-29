@@ -149,7 +149,7 @@ class controlmenu extends controlmenu_format_topics {
                 $merged = array_merge($merged, $movecontrols);
             }
         }
-        // SU_AMEND_START: Prevent hiding, deleting or moving non-draggable sections.
+        // SSU_AMEND_START: Prevent hiding, deleting or moving non-draggable sections.
         if (!solhelper::isdraggable($course, $section)) {
             unset($merged['visiblity']); // Yes this is a typo.
             unset($merged['visibility']); // Just in case they correct the typo.
@@ -160,9 +160,7 @@ class controlmenu extends controlmenu_format_topics {
             unset($merged['duplicate']);
             unset($merged['move']);
         }
-        // $keys = array_keys($merged);
-        //     print_r($keys);
-        // SU_AMEND_END.
+        // SSU_AMEND_END.
         return $merged;
     }
 }
