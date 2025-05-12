@@ -115,6 +115,7 @@ $string['locksections'] = 'Lock sections';
 $string['locksections_desc'] = 'Lock all sections up to this section number';
 $string['movesectionto'] = 'Move current topic';
 $string['movesectionto_help'] = 'Move current topic to left/right of selected topic';
+$string['onetopic:hideassignments'] = 'Hide SITS assignments';
 $string['page-course-view-topics'] = 'Any course main page in onetopic format';
 $string['page-course-view-topics-x'] = 'Any course page in onetopic format';
 $string['plugin_description'] = 'Course sections are displayed separately in tabs.';

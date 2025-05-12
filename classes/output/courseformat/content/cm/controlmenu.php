@@ -47,8 +47,10 @@ class controlmenu extends \core_courseformat\output\local\content\cm\controlmenu
         // SU_AMEND_START: Hide dangerous actions for summative assignments.
         if (\format_onetopic\solhelper::is_summative_assignment($this->mod->id) && !is_siteadmin()) {
             unset($controlactions['delete']);
-            unset($controlactions['availability']); // Hide has been renamed.
-            unset($controlactions['hide']);
+            if (!has_capability('format/onetopic:hideassignments', $this->mod->context)) {
+                unset($controlactions['availability']); // Hide has been renamed.
+                unset($controlactions['hide']);
+            }
             unset($controlactions['duplicate']);
         }
         // SU_AMEND_END.
