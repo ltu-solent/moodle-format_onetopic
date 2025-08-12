@@ -8,6 +8,14 @@ Feature: Summative assignments cannot be deleted or have its name changed
     Given the following "users" exist:
       | username | firstname | lastname | email            |
       | teacher1 | Teacher   | 1        | teacher1@example.com |
+      | al1      | Associate | Lec      | al1@example.com      |
+    And the following "roles" exist:
+      | shortname | name               | archetype      |
+      | al        | Associate lecturer | editingteacher |
+    And I log in as "admin"
+    And I set the following system permissions of "Associate lecturer" role:
+      | capability                           | permission |
+      | format/onetopic:hideassignments      | Prevent    |
     And the following "courses" exist:
       | fullname | shortname | format   | coursedisplay | numsections |
       | Course 1 | C1        | onetopic | 0             | 5           |
@@ -19,11 +27,12 @@ Feature: Summative assignments cannot be deleted or have its name changed
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
-    And I log in as "teacher1"
-    And I am on "Course 1" course homepage with editing mode on
+      | al1      | C1     | al             |
 
   Scenario: Summative assignment has no inline name editing
-    When I click on "Topic 1" "link" in the "#page-content ul.nav.nav-tabs" "css_element"
+    When I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
+    And I click on "Topic 1" "link" in the "#page-content ul.nav.nav-tabs" "css_element"
     Then I should see "Summative assignment"
     And "[data-value='Summative assignment']" "css_element" should not exist
     And I should see "Formative assignment"
@@ -32,7 +41,23 @@ Feature: Summative assignments cannot be deleted or have its name changed
     And "[data-value='Good news assignment']" "css_element" should exist
 
   Scenario: Summative assignment has no delete action
-    When I click on "Topic 1" "link" in the "#page-content ul.nav.nav-tabs" "css_element"
+    When I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
+    And I click on "Topic 1" "link" in the "#page-content ul.nav.nav-tabs" "css_element"
+    And I open the action menu in "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
+    Then I should see "Edit settings" in the "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
+    And I should not see "Delete" in the "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
+    And I should see "Hide" in the "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
+    And I close "Summative assignment" actions menu
+    When I open the action menu in "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
+    Then I should see "Edit settings" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
+    And I should see "Delete" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
+    And I should see "Hide" in the "[data-activityname='Formative assignment'] .cm_action_menu" "css_element"
+
+  Scenario: Summative assignment has no hide action for Als
+    When I log in as "al1"
+    And I am on "Course 1" course homepage with editing mode on
+    And I click on "Topic 1" "link" in the "#page-content ul.nav.nav-tabs" "css_element"
     And I open the action menu in "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
     Then I should see "Edit settings" in the "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
     And I should not see "Delete" in the "[data-activityname='Summative assignment'] .cm_action_menu" "css_element"
