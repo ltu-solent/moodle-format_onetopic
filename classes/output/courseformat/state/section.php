@@ -49,4 +49,3 @@ class section extends StateSection {
         // SSU_AMEND_END.
     }
 }
-

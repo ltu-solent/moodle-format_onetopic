@@ -30,7 +30,6 @@ namespace format_onetopic;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class singletab {
-
     /**
      * @var int Tab index.
      */
@@ -97,9 +96,15 @@ class singletab {
      * @param string $customstyles Custom CSS styles.
      * @param string $specialclass Custom extra CSS classes.
      */
-    public function __construct($section, $content, $link, $title, $availablemessage = null,
-                                    $customstyles = '', $specialclass = '') {
-
+    public function __construct(
+        $section,
+        $content,
+        $link,
+        $title,
+        $availablemessage = null,
+        $customstyles = '',
+        $specialclass = ''
+    ) {
         $this->index = 0;
         $this->section = $section;
         $this->content = $content;

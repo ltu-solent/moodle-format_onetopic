@@ -30,7 +30,6 @@ namespace format_onetopic;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tabs {
-
     /**
      * @var array Tabs list.
      */
@@ -76,7 +75,6 @@ class tabs {
         $anchortotabstree = get_config('format_onetopic', 'anchortotabstree');
 
         foreach ($this->tabslist as $tab) {
-
             if ($assubtabs && strpos($tab->specialclass, ' subtopic ') === false) {
                 $tab->specialclass .= ' subtopic ';
             }
@@ -139,5 +137,4 @@ class tabs {
 
         return $tabstree;
     }
-
 }

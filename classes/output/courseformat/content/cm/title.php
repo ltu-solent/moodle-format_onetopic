@@ -35,7 +35,6 @@ use section_info;
  * Override cm title class
  */
 class title extends \core_courseformat\output\local\content\cm\title {
-
     /**
      * Constructor.
      *

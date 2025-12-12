@@ -24,7 +24,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-require_once($CFG->dirroot. '/course/format/lib.php');
+require_once($CFG->dirroot . '/course/format/lib.php');
 
 use core\output\inplace_editable;
 
@@ -37,7 +37,6 @@ use core\output\inplace_editable;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class format_onetopic extends core_courseformat\base {
-
     /** @var int The summary is not a template */
     const TEMPLATETOPIC_NOT = 0;
 
@@ -129,7 +128,6 @@ class format_onetopic extends core_courseformat\base {
         if ($inpopup) {
             $this->printable = false;
         } else {
-
             $defaultscope = get_config('format_onetopic', 'defaultscope');
 
             if ($defaultscope) {
@@ -141,7 +139,6 @@ class format_onetopic extends core_courseformat\base {
             $pagesavailable = ['course-view-onetopic', 'course-view', 'lib-ajax-service'];
 
             if (!in_array($PAGE->pagetype, $pagesavailable)) {
-
                 if (in_array(self::SCOPE_MOD, $scope)) {
                     $this->currentscope = self::SCOPE_MOD;
                     $patternavailable = '/^mod-.*-view$/';
@@ -152,7 +149,6 @@ class format_onetopic extends core_courseformat\base {
                             $this->printable = true;
                         }
                     }
-
                 } else {
                     $this->printable = false;
                 }
@@ -162,8 +158,12 @@ class format_onetopic extends core_courseformat\base {
         }
 
         if ($this->printable) {
-            if (!self::$loaded && isset($section) && $courseid &&
-                    ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')) {
+            if (
+                !self::$loaded &&
+                isset($section) &&
+                $courseid &&
+                ($PAGE->pagetype == 'course-view-onetopic' || $PAGE->pagetype == 'course-view')
+            ) {
                 self::$loaded = true;
 
                 $this->singlesection = $section;
@@ -204,11 +204,12 @@ class format_onetopic extends core_courseformat\base {
 
                 // Check if the display section is available.
                 if ($realsection === null || !$sections[$realsection]->uservisible) {
-
                     if ($realsection) {
-                        self::$formatmsgs[] = get_string('hidden_message',
-                                                            'format_onetopic',
-                                                            $this->get_section_name($realsection));
+                        self::$formatmsgs[] = get_string(
+                            'hidden_message',
+                            'format_onetopic',
+                            $this->get_section_name($realsection)
+                        );
                     }
 
                     $valid = false;
@@ -222,7 +223,6 @@ class format_onetopic extends core_courseformat\base {
                         }
 
                         $k++;
-
                     } while (!$valid && $k <= $numsections);
 
                     $realsection = $valid ? $k : 0;
@@ -235,7 +235,6 @@ class format_onetopic extends core_courseformat\base {
                 $USER->display[$course->id] = $realsection;
                 $urlparams['section'] = $realsection;
                 $PAGE->set_url('/course/view.php', $urlparams);
-
             }
         }
     }
@@ -255,7 +254,6 @@ class format_onetopic extends core_courseformat\base {
      * @return bool
      */
     public function uses_course_index() {
-
         $course = $this->get_course();
 
         if ($course->tabsview == self::TABSVIEW_COURSEINDEX) {
@@ -294,8 +292,11 @@ class format_onetopic extends core_courseformat\base {
     public function get_section_name($section) {
         $section = $this->get_section($section);
         if ((string)$section->name !== '') {
-            return format_string($section->name, true,
-                ['context' => context_course::instance($this->courseid)]);
+            return format_string(
+                $section->name,
+                true,
+                ['context' => context_course::instance($this->courseid)]
+            );
         } else {
             return $this->get_default_section_name($section);
         }
@@ -451,9 +452,10 @@ class format_onetopic extends core_courseformat\base {
         // If section is specified in course/view.php, make sure it is expanded in navigation.
         if ($navigation->includesectionnum === false) {
             $selectedsection = optional_param('section', null, PARAM_INT);
-            if ((!defined('AJAX_SCRIPT') || AJAX_SCRIPT == '0') &&
-                    $PAGE->url->compare(new moodle_url('/course/view.php'), URL_MATCH_BASE)) {
-
+            if (
+                (!defined('AJAX_SCRIPT') || AJAX_SCRIPT == '0') &&
+                $PAGE->url->compare(new moodle_url('/course/view.php'), URL_MATCH_BASE)
+            ) {
                 if ($selectedsection !== null) {
                     $navigation->includesectionnum = $selectedsection;
                 } else if (isset($USER->display[$COURSE->id])) {
@@ -930,8 +932,13 @@ class format_onetopic extends core_courseformat\base {
      * @param null|lang_string|string $editlabel
      * @return inplace_editable
      */
-    public function inplace_editable_render_section_name($section, $linkifneeded = true,
-            $editable = null, $edithint = null, $editlabel = null) {
+    public function inplace_editable_render_section_name(
+        $section,
+        $linkifneeded = true,
+        $editable = null,
+        $edithint = null,
+        $editlabel = null
+    ) {
         if (empty($edithint)) {
             $edithint = new lang_string('editsectionname');
         }
@@ -1031,7 +1038,6 @@ class format_onetopic extends core_courseformat\base {
         $parentsections = [];
         $level0section = null;
         foreach ($sections as $section) {
-
             if ($section->section <= $firstsection || $section->level <= 0) {
                 $parent = null;
                 $level0section = $section;
@@ -1087,7 +1093,6 @@ class format_onetopic extends core_courseformat\base {
 
         return parent::show_editor($capabilities);
     }
-
 }
 
 /**
@@ -1104,7 +1109,9 @@ function format_onetopics_inplace_editable($itemtype, $itemid, $newvalue) {
     if ($itemtype === 'sectionname' || $itemtype === 'sectionnamenl') {
         $section = $DB->get_record_sql(
             'SELECT s.* FROM {course_sections} s JOIN {course} c ON s.course = c.id WHERE s.id = ? AND c.format = ?',
-            [$itemid, 'onetopic'], MUST_EXIST);
+            [$itemid, 'onetopic'],
+            MUST_EXIST
+        );
         return course_get_format($section->course)->inplace_editable_update_section_name($section, $itemtype, $newvalue);
     }
 }

@@ -39,3 +39,4 @@ $plugin->component = 'format_onetopic'; // Full name of the plugin (used for dia
 $plugin->maturity = MATURITY_BETA;
 $plugin->release = '4.4.02(LasAcacias)';
 $plugin->dependencies = ['format_topics' => 2024042200];
+$plugin->supported = [404, 405];

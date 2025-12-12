@@ -36,7 +36,6 @@ use course_modinfo;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class header implements \renderable, \templatable {
-
     /**
      * @var \format_onetopic
      */
@@ -71,8 +70,10 @@ class header implements \renderable, \templatable {
 
         $tabslist = [];
         $secondtabslist = null;
-        if ($course->tabsview != \format_onetopic::TABSVIEW_COURSEINDEX &&
-                ($format->show_editor() || !$course->hidetabsbar)) {
+        if (
+            $course->tabsview != \format_onetopic::TABSVIEW_COURSEINDEX &&
+            ($format->show_editor() || !$course->hidetabsbar)
+        ) {
             $tabs = $this->get_tabs($this->format->get_modinfo(), $output);
             $tabslist = $tabs->get_list();
             $secondtabslist = $tabs->get_secondlist($firstsection ? $currentsection - 1 : $currentsection);
@@ -124,7 +125,6 @@ class header implements \renderable, \templatable {
 
         // General section if non-empty and course_display is multiple.
         if ($course->realcoursedisplay == COURSE_DISPLAY_MULTIPAGE) {
-
             // Load the section 0 and export data for template.
             $modinfo = $this->format->get_modinfo();
             $section0 = $modinfo->get_section_info(0);
@@ -133,7 +133,6 @@ class header implements \renderable, \templatable {
 
             $sectionoutput = new \format_onetopic\output\renderer($PAGE, null);
             $initialsection = $section->export_for_template($sectionoutput);
-
         }
 
         $data->initialsection = $initialsection;
@@ -202,20 +201,18 @@ class header implements \renderable, \templatable {
 
             // Can we view the section in question?
             if ($thissection->uservisible || $course->hiddensections != 1) {
-
                 $formatoptions = course_get_format($course)->get_format_options($thissection);
 
                 $sectionname = get_section_name($course, $thissection);
                 $title = $sectionname;
 
                 if (!$thissection->visible || !$thissection->available) {
-                    $title .= ': '. get_string('hiddenfromstudents');
+                    $title .= ': ' . get_string('hiddenfromstudents');
                 }
 
                 $customstyles = '';
                 $level = 0;
                 if (is_array($formatoptions)) {
-
                     if ($enablecustomstyles) {
                         if (!empty($formatoptions['fontcolor'])) {
                             $customstyles .= 'color: ' . $formatoptions['fontcolor'] . '; ';
@@ -266,8 +263,15 @@ class header implements \renderable, \templatable {
                     }
                 }
 
-                $newtab = new \format_onetopic\singletab($localsection, $sectionname, $url, $title,
-                                        $availablemessage, $customstyles, $specialclass);
+                $newtab = new \format_onetopic\singletab(
+                    $localsection,
+                    $sectionname,
+                    $url,
+                    $title,
+                    $availablemessage,
+                    $customstyles,
+                    $specialclass
+                );
                 $newtab->active = !$inactivetab;
 
                 if ($displaysection == $localsection) {
@@ -275,22 +279,21 @@ class header implements \renderable, \templatable {
                 }
 
                 if (is_array($formatoptions) && isset($formatoptions['level'])) {
-
                     if ($formatoptions['level'] == 0 || $parenttab == null) {
                         $tabs->add($newtab);
                         $parenttab = $newtab;
                     } else {
-
                         if (!$parenttab->has_childs()) {
                             $specialclasstmp = str_replace('tab_level_0', 'tab_level_1', $parenttab->specialclass);
-                            $indextab = new \format_onetopic\singletab($parenttab->section,
-                                                    $parenttab->content,
-                                                    $parenttab->link,
-                                                    $parenttab->title,
-                                                    $parenttab->availablemessage,
-                                                    $parenttab->customstyles,
-                                                    $specialclasstmp);
-
+                            $indextab = new \format_onetopic\singletab(
+                                $parenttab->section,
+                                $parenttab->content,
+                                $parenttab->link,
+                                $parenttab->title,
+                                $parenttab->availablemessage,
+                                $parenttab->customstyles,
+                                $specialclasstmp
+                            );
                             $prevsectionindex = $localsection - 1;
                             do {
                                 $parentsection = $sections[$prevsectionindex];
@@ -327,19 +330,16 @@ class header implements \renderable, \templatable {
                     $tabs->add($newtab);
                     $parenttab = $newtab;
                 }
-
             }
 
             $localsection++;
         }
 
         if ($this->format->show_editor()) {
-
             $maxsections = $this->format->get_max_sections();
 
             // Only can add sections if it does not exceed the maximum amount.
             if (count($sections) < $maxsections) {
-
                 // SU_AMEND_START: Prevent inserting tab in current position.
                 $config = get_config('format_onetopic');
                 $allowmidtab = 1;
@@ -382,11 +382,9 @@ class header implements \renderable, \templatable {
                 $url = new \moodle_url('/course/format/onetopic/changenumsections.php', $paramstotabs);
                 $newtab = new \format_onetopic\singletab('add', $icon, $url, s($straddsection));
                 $tabs->add($newtab);
-
             }
         }
 
         return $tabs;
     }
-
 }
